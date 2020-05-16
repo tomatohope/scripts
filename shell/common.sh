@@ -3,9 +3,10 @@
 # N colomns  N 列 多列 按
 echo $releaseinfo | awk  '{for(i=2;i<=NF;i=i+2) print $(i-1),$i}' >> /tmp/release
 
-# 指定行 替换  sed
+# 指定行 替换  sed 去除换行符
 sed -i "/js.version=/c js.version=$time" xxx/${app}-prod.properties
 echo -e ${A} | sed  -e "s/auto/${auto}/g" | sed  -e "s/num/${num}/g"
+sed -e 's/\\r//g'
 
 # get file detail info 查看 文件 详细信息 文件类型
 ls -lt --time-style='full-iso' $file
@@ -119,3 +120,19 @@ done
 echo -e "$code"
 
 }
+
+# 文件 是否存在
+if [ -f $file ];then
+        echo "exist" >> info
+fi
+
+
+# 文件名 带 空格 的 文件
+# 遍历
+for i in `ls ./ | tr " " "\?"`
+do
+   cd /var/lib/jenkins/jobs/dev-auto-deploy/jobs/
+   echo "cd ${i}/builds"
+
+  # 带双引号
+   cd "${i}/builds"
