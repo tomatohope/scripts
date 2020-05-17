@@ -68,3 +68,197 @@ chmod  0440 /etc/sudoers
 # 查看 进程 端口
 netstat -antlp | grep `ps aux | grep http | grep -v "\--color"| awk '{print $2}'`
 
+# 域名
+/etc/resolv.conf文件
+nameserver 8.8.8.8
+
+# selinux firewalld
+/etc/selinux/config
+systemctl disable firewalld
+
+# 免密登录
+ssh-keygen -t rsa
+ssh-copy-id -i ~/.ssh/id_rsa.pub root@host
+
+# 替换 换行 空格
+echo char | tr '\n' ' ' | sed 's/ //g'"
+
+# yum执行报错No module named yummain处理
+wget  http://yum.baseurl.org/download/3.4/yum-3.4.0.tar.gz
+tar -xf yum-3.4.0.tar.gz
+cd yum-3.4.0
+./yummain.py  install yum
+yum update
+
+# rpm 包下载
+http://rpm.pbone.net/
+
+# ssh 修复
+rpm -qa openssh*
+yum remove openssh
+
+yum install openssh openssh-server openssh-clients
+
+chmod -R 777 /etc/polkit-1/rules.d
+yum search polkit
+yum -y install polkit.x86_64
+
+systemctl restart  polkit.service
+service sshd start
+echo root:12345678  | chpasswd
+
+# 大文件处理
+https://www.cnblogs.com/cherishui/p/4136847.html
+
+wget http://ftp.gnu.org/gnu/parallel/parallel-latest.tar.bz2
+ tar -xf parallel-latest.tar.bz2
+ cd parallel-20191022/
+./configure
+  make
+make install
+
+cat 11 | parallel   --pipe sed 's?\`??g' >> 22
+
+# securecrt SFTP
+alt+p
+put:
+cd [dit]
+lcd [dir]
+put filename
+
+get
+...
+get filename
+
+#
+$* 参数
+$$
+Shell本身的PID（ProcessID）
+$!
+Shell最后运行的后台Process的PID
+$?
+最后运行的命令的结束代码（返回值）
+$*
+所有参数列表。如"$*"用「"」括起来的情况、以"$1 $2 … $n"的形式输出所有参数。
+$@
+所有参数列表。如"$@"用「"」括起来的情况、以"$1" "$2" … "$n" 的形式输出所有参数。
+$#
+添加到Shell的参数个数
+$0
+Shell本身的文件名
+$1～$n
+添加到Shell的各参数值。$1是第1参数、$2是第2参数…
+
+#字符串分割
+awk -F "符号" ‘{print $1"想追加的字符"}’
+#打印第N列后的所有列（不包括第N列）
+awk '{for(i=N+1;i<=NF;i++)printf $i "  ";printf"\n"}' file
+
+查看文件内容
+cat -s file
+#将多个空行转换为一行
+cat file | tr -s '\n'
+不显示空白行
+
+#复制子文件及其属性
+cp -rp
+
+#if 匹配
+[[ $port =~ ^[0-9]{1,5}$ ]]
+$i =~ ^[0-9]+$
+
+[[ ]] 是if判断使用正则表达式的固定格式
+=~表示匹配
+^ 是以什么开头
++ 表示1到多个
+$ 是以什么结尾
+
+#if 判断
+BB=
+[[ -n $BB ]]   #“-n”为空
+[root]# echo $?
+
+#a=2
+if [ $a ];then
+echo ok
+fi
+如果a有值,输出OK
+
+#jq 对JSON进行操作
+
+ln -s 【目标目录】 【软链接地址】
+!!!创建符号链接的时候一定要使用绝对路径 ，否则会出现“符号连接的层数过多”，是由于不同路径访问都采用了相对路径
+
+rm -rf 【软链接地址】
+上述指令中，软链接地址最后不能含有“/”，当含有“/”时，删除的是软链接目标目录下的资源，而不是软链接本身。
+
+ln -snf 【新目标目录】 【软链接地址】
+这里修改是指修改软链接的目标目录
+
+#readlink  追溯源文件
+
+#########
+#basename 去除绝对路径
+
+变量和字符一起组合
+echo ${a}s
+
+a=`echo 'ls /homewew"m'`
+echo $a  | sed 's/"/\\\\"/g'`
+#将字符串   ls /homewew"m'  中的“ 替换为\\"
+
+# 指定行替换整行：
+sed '行号c 新的内容' 要处理的文件
+sed -e "/url/c${url}" file
+
+# 指定替换某个字符：
+sed -i "s/account/${app}/g" file
+
+a=aaaaa
+echo ${a//bbb-/}
+
+删除指定行后的文件：
+cat a | sed -e '/auto/,$d'
+
+在指定行后添加多行文本：
+      将多行文本存到指定文件
+      sed -e '/指定行字符/r 指定的多行文本文件' 需要修改的文件
+
+#替换时附加引号
+sed -e "s/${aa}/\"${aa1}\"/g" aa
+
+#将/ 替换成 \/
+GitUrl="$( echo "${GitUrl}" | sed 's/\//\\\//g' )"
+
+#屏蔽输入输出，多用于密码字段
+stty -echo
+
+#date 格式
+输出30天前的日期：
+date -d '30 days ago' +%F
+date=`date -d "$one_month_ago" +%s`
+#将“年-月-日”日期格式转换为秒格式
+date "+%Y-%m-%d %H:%M:%S"
+ts=`date +%Y%m%d%H%M%S` ###20190304235406
+
+#匹配以字符#开头
+if [[ "$a" =~ ^#  ]];then
+   echo 1
+fi
+#########################
+#匹配以字符fd结尾
+if [[ "$a" =~ fd$  ]];then
+   echo 1
+fi
+
+文本统计：wc (word count)
+      -l：多少行
+      -w：多少单词
+      -c：多少字符
+      -L：最长的一行包含了多少个字符
+
+######## 断电
+ERROR:/dev/sda2: Inodes that were part of a corrupted orphan linked list found.
+fsck.ext4 /dev/sda2
+fsck.ext4 -y /dev/sda2
+
