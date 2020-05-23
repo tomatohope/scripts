@@ -287,3 +287,37 @@ cron(定制任务日志)日志:/var/log/cron
 #相关查询登录信息命令： w who last
 #相关开机信息命令：dmesg
 #相关系统信息命令：uptime top free df fdisk cat /etc/redhat-release
+
+############ 快速度量磁盘信息
+http://soft.vpser.net/manage/ncdu/ncdu-1.6.tar.gz
+./configure
+make && make install
+启动路径：/usr/local/bin/ncdu
+
+提示：
+configure: error: no acceptable C compiler found in $PATH
+请安装gcc编译器：
+#yum -y install gcc gcc-c++
+configure: error: required header file not found
+请安装:
+yum -y install ncurses ncurses-devel
+
+#########################
+
+上下箭头切换目录
+左右箭头切换父级目录
+s 按 文件大小排序
+n 按 文件名排序
+q 退出
+
+
+n - 按名称排序（再次按降序排列）
+s - 按文件大小排序（再次按降序排列）
+d - 删除所选文件或目录
+g - 显示百分比和/或图表
+t - 排序时在文件之前切换dirs
+c - 切换子项目计数的显示
+b - 当前目录中的Spawn shell
+i - 显示有关所选项目的信息
+r - 刷新/重新计算当前目录
+q - 退出ncdu
