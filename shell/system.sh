@@ -262,3 +262,28 @@ ERROR:/dev/sda2: Inodes that were part of a corrupted orphan linked list found.
 fsck.ext4 /dev/sda2
 fsck.ext4 -y /dev/sda2
 
+############ /var/log 系统日志 系统信息
+Linux /var/log下的各种日志文件详解
+
+系统的引导日志:/var/log/boot.log
+系统日志一般都存在/var/log下
+核心启动日志:/var/log/dmesg
+系统报错日志:/var/log/messages
+邮件系统日志:/var/log/maillog
+FTP系统日志:/var/log/xferlog
+安全信息和系统登录与网络连接的信息:/var/log/secure
+登录记录:/var/log/wtmp      记录登录者讯录，二进制文件，须用last来读取内容    who -u /var/log/wtmp 查看信息
+News日志:/var/log/spooler
+RPM软件包:/var/log/rpmpkgs
+XFree86日志:/var/log/XFree86.0.log
+引导日志:/var/log/boot.log   记录开机启动信息，dmesg | more
+cron(定制任务日志)日志:/var/log/cron
+安全信息和系统登录与网络连接的信息:/var/log/secure
+
+文件 /var/run/utmp 现在登录用户
+文件 /var/log/wtmp 所有登录登出
+文件 /var/log/lastlog 用户最后登录信息
+文件 /var/log/btmp 错误登录尝试
+#相关查询登录信息命令： w who last
+#相关开机信息命令：dmesg
+#相关系统信息命令：uptime top free df fdisk cat /etc/redhat-release
