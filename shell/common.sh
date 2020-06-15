@@ -136,3 +136,14 @@ do
 
   # 带双引号
    cd "${i}/builds"
+
+# 文件压缩
+0 3 * * * cd /var/log/`date +\%m-\%d` && gzip *
+
+gzip
+高压缩比，压缩后会清掉源文件，解压后也会清掉源文件，不支持目录
+
+eg:
+   cd dir
+   gzip *
+   或 gzip filename1 filename2
