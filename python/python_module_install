@@ -40,3 +40,14 @@ run:
     yum -y install python-devel
 python setup.py install
 
+############################### install online
+yum -y install wget
+yum -y install unzip
+yum -y install python-setuptools
+yum -y install gcc
+yum -y install python-devel
+yum -y install mysql-devel
+yum -y remove  mariadb-devel-5.5.65-1.el7.x86_64
+cp mysql_config /usr/bin/mysql_config
+chmod +x /usr/bin/mysql_config
+pip install mysql-python
