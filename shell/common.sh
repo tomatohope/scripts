@@ -147,3 +147,6 @@ eg:
    cd dir
    gzip *
    或 gzip filename1 filename2
+
+# wget 只下载 html ,  双引号 ： 403
+wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "https://download.oracle.com/otn-pub/java/jdk/14.0.1+7/664493ef4a6946b186ff29eb326336a2/jdk-14.0.1_linux-x64_bin.tar.gz"
