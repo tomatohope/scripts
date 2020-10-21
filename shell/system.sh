@@ -321,3 +321,45 @@ b - 当前目录中的Spawn shell
 i - 显示有关所选项目的信息
 r - 刷新/重新计算当前目录
 q - 退出ncdu
+
+
+权限管理 只读账户
+##########################
+
+1
+useradd yuanpengchao
+echo "EA7HVQSejL7gVeBG" | passwd yuanpengchao --stdin
+
+#setfacl -m u:yuanpengchao:r -R /data
+#setfacl -x user:yuanpengchao -R /data/
+#getfacl /data/
+
+2
+mkdir /home/yuanpengchao/.bin
+
+chown root. /home/yuanpengchao/.bash_profile 
+chmod 755 /home/yuanpengchao/.bash_profile
+
+chattr -i /home/yuanpengchao/.bash_profile
+
+vi /home/yuanpengchao/.bash_profile 
+
+PATH=$HOME/.bin
+
+3
+ln -s /usr/bin/wc  /home/yuanpengchao/.bin/wc
+ln -s /usr/bin/tail  /home/yuanpengchao/.bin/tail
+ln -s /bin/more  /home/yuanpengchao/.bin/more
+ln -s /bin/cat  /home/yuanpengchao/.bin/cat
+ln -s /bin/grep  /home/yuanpengchao/.bin/grep
+ln -s /bin/find  /home/yuanpengchao/.bin/find
+ln -s /bin/pwd  /home/yuanpengchao/.bin/pwd
+ln -s /bin/ls  /home/yuanpengchao/.bin/ls
+ln -s /usr/bin/less /home/yuanpengchao/.bin/less
+ln -s /bin/tar  /home/yuanpengchao/.bin/tar
+ln -s /bin/cd  /home/yuanpengchao/.bin/cd
+
+
+4
+su yuanpengchao
+source /home/yuanpengchao/.bash_profile 
