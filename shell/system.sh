@@ -322,6 +322,9 @@ i - 显示有关所选项目的信息
 r - 刷新/重新计算当前目录
 q - 退出ncdu
 
+#### clean /var/log/journal 
+#journalctl --disk-usage
+5 2 * * * journalctl --vacuum-time=1w
 
 权限管理 只读账户
 ##########################
