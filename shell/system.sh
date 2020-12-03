@@ -381,3 +381,6 @@ yum -y install shc
 ##  当 shell 开头是 bin/bash 时才可加密成功, 加密后就不需要 加 bash 执行
 #!/bin/bash
 shc -r -f t.sh
+
+## redis log
+redis-cli -h xxx -p 6379 -a pass monitor
