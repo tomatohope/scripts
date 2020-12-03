@@ -374,3 +374,10 @@ source /home/yuanpengchao/.bash_profile
 chage -M 60 -m 0 -W 7 root
 # m M W
 cat /etc/shadow | grep root | awk -F ":" '{print $4" "$5" "$6}'
+
+##
+# 使用shc 加密为可执行文件
+yum -y install shc 
+##  当 shell 开头是 bin/bash 时才可加密成功, 加密后就不需要 加 bash 执行
+#!/bin/bash
+shc -r -f t.sh
