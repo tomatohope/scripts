@@ -370,7 +370,7 @@ source /home/yuanpengchao/.bash_profile
 
 ##
 #修改账户密码保留时间
-# -M max -m min -W waning
+# -M max -m min -W waning; 注意更新后请及时更改root密码，可能行号符合机制
 chage -M 60 -m 0 -W 7 root
 # m M W
 cat /etc/shadow | grep root | awk -F ":" '{print $4" "$5" "$6}'
