@@ -366,3 +366,11 @@ ln -s /bin/cd  /home/yuanpengchao/.bin/cd
 4
 su yuanpengchao
 source /home/yuanpengchao/.bash_profile 
+
+
+##
+#修改账户密码保留时间
+# -M max -m min -W waning
+chage -M 60 -m 0 -W 7 root
+# m M W
+cat /etc/shadow | grep root | awk -F ":" '{print $4" "$5" "$6}'
