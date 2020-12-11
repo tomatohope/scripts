@@ -384,3 +384,6 @@ shc -r -f t.sh
 
 ## redis log
 redis-cli -h xxx -p 6379 -a pass monitor
+
+##
+date -d "31 days ago " "+%Y-%m-%d"
