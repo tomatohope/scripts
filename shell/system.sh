@@ -387,3 +387,17 @@ redis-cli -h xxx -p 6379 -a pass monitor
 
 ##
 date -d "31 days ago " "+%Y-%m-%d"
+
+##
+inodes much more
+df -i
+for i in /data/*; do echo $i; find $i |wc -l ;done
+
+/data
+/proc
+
+2539083
+1368419
+
+
+for i in /proc/*; do echo $i; find $i |wc -l ;done
