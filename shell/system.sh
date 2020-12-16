@@ -329,43 +329,34 @@ q - 退出ncdu
 权限管理 只读账户
 ##########################
 
-1
-useradd yuanpengchao
-echo "EA7HVQSejL7gVeBG" | passwd yuanpengchao --stdin
-
-#setfacl -m u:yuanpengchao:r -R /data
-#setfacl -x user:yuanpengchao -R /data/
+username="lingang"
+useradd "${username}"
+echo "9FpvaUa#ISCMAWfo" | passwd "${username}" --stdin
+#setfacl -m u:"${username}":r -R /data
+#setfacl -x user:"${username}" -R /data/
 #getfacl /data/
 
-2
-mkdir /home/yuanpengchao/.bin
+mkdir /home/"${username}"/.bin
+chown root. /home/"${username}"/.bash_profile 
+chmod 755 /home/"${username}"/.bash_profile
+chattr -i /home/"${username}"/.bash_profile
+sed -i 's/PATH=/#PATH=/g' /home/"${username}"/.bash_profile 
+sed -i '/#PATH/a PATH=$HOME/.bin' /home/"${username}"/.bash_profile 
 
-chown root. /home/yuanpengchao/.bash_profile 
-chmod 755 /home/yuanpengchao/.bash_profile
+ln -s /usr/bin/wc  /home/"${username}"/.bin/wc
+ln -s /usr/bin/tail  /home/"${username}"/.bin/tail
+ln -s /bin/more  /home/"${username}"/.bin/more
+ln -s /bin/cat  /home/"${username}"/.bin/cat
+ln -s /bin/grep  /home/"${username}"/.bin/grep
+ln -s /bin/find  /home/"${username}"/.bin/find
+ln -s /bin/pwd  /home/"${username}"/.bin/pwd
+ln -s /bin/ls  /home/"${username}"/.bin/ls
+ln -s /usr/bin/less /home/"${username}"/.bin/less
+ln -s /bin/tar  /home/"${username}"/.bin/tar
+ln -s /bin/cd  /home/"${username}"/.bin/cd
 
-chattr -i /home/yuanpengchao/.bash_profile
-
-vi /home/yuanpengchao/.bash_profile 
-
-PATH=$HOME/.bin
-
-3
-ln -s /usr/bin/wc  /home/yuanpengchao/.bin/wc
-ln -s /usr/bin/tail  /home/yuanpengchao/.bin/tail
-ln -s /bin/more  /home/yuanpengchao/.bin/more
-ln -s /bin/cat  /home/yuanpengchao/.bin/cat
-ln -s /bin/grep  /home/yuanpengchao/.bin/grep
-ln -s /bin/find  /home/yuanpengchao/.bin/find
-ln -s /bin/pwd  /home/yuanpengchao/.bin/pwd
-ln -s /bin/ls  /home/yuanpengchao/.bin/ls
-ln -s /usr/bin/less /home/yuanpengchao/.bin/less
-ln -s /bin/tar  /home/yuanpengchao/.bin/tar
-ln -s /bin/cd  /home/yuanpengchao/.bin/cd
-
-
-4
-su yuanpengchao
-source /home/yuanpengchao/.bash_profile 
+su "${username}"
+source ~/.bash_profile 
 
 
 ##
