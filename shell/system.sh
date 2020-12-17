@@ -392,3 +392,46 @@ for i in /data/*; do echo $i; find $i |wc -l ;done
 
 
 for i in /proc/*; do echo $i; find $i |wc -l ;done
+
+
+## httpd
+
+# install in order
+expat --> apr --> apr-util
+yum install expat-devel -y
+
+apche apr
+
+http://apr.apache.org/download.cgi
+把RM='$RM'改为RM='$RM  -f'
+./configure --prefix=/tmp/hope/apr/apr
+make && make install
+
+apche apr-util
+
+
+http://apr.apache.org/download.cgi
+./configure --prefix=/tmp/hope/apr-util/apr-util --with-apr=/tmp/hope/apr/apr/bin/apr-1-config
+make && make install
+
+
+apache http
+https://httpd.apache.org/docs/2.4/install.html
+#./configure --prefix=PREFIX
+./configure --prefix=/tmp/hope/httpd --with-apr=/tmp/hope/apr/apr/bin/apr-1-config  --with-apr-util=/tmp/hope/apr-util/apr-util
+make
+make install
+#vi PREFIX/conf/httpd.conf
+PREFIX/bin/apachectl -k start
+
+
+
+
+
+
+
+
+
+
+
+
