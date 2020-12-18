@@ -438,8 +438,8 @@ crontab -l
 
 
 
-
-
+########################## mv error : 将会把 /tmp/out/wp-customer整个目录放到  /data/log-backup/sfa/wp-customer/ 下，导致再次 mv 会有同样的文件
+mv /tmp/out/wp-customer/`ls | grep $(date -d "3 days ago " "+%Y-%m-%d")` /data/log-backup/sfa/wp-customer/
 
 
 
