@@ -440,6 +440,8 @@ crontab -l
 
 ########################## mv error : 将会把 /tmp/out/wp-customer整个目录放到  /data/log-backup/sfa/wp-customer/ 下，导致再次 mv 会有同样的文件
 mv /tmp/out/wp-customer/`ls | grep $(date -d "3 days ago " "+%Y-%m-%d")` /data/log-backup/sfa/wp-customer/
+### 但是这样拼接的可以
+mv /data/MS/want-ceo-taskserver-1.0.0/wso2/default/logs/carbon-`date -d "1 days ago " "+%m-%d-%Y".log` /data/extend/applogs/ms-taskserver/
 ### 推荐使用
 find /tmp/out/wp-customer/ -type f -mtime +10 -exec  mv  {} /data/log-backup/sfa/wp-customer/  \; 
 
