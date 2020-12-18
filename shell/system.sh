@@ -425,8 +425,16 @@ make install
 PREFIX/bin/apachectl -k start
 
 
+##########################
+脚本 +x 执行权限
+cron 里执行的脚本使用绝对路径,包括命令
+cron 里的时间格式 分 时 日 月 周 03 02 * * * ：表示每天 2点3分
+tail -f /var/log/cron # 待 cron reload 后生效
+service crond restart
+crontab -l
 
-
+# date -s 02:00:00 \\更改时间
+# date -d "+%Y-%m-%d %H:%M:%S" \\转换格式
 
 
 
