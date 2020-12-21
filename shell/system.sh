@@ -445,5 +445,10 @@ mv /data/MS/want-ceo-taskserver-1.0.0/wso2/default/logs/carbon-`date -d "1 days 
 ### 推荐使用
 find /tmp/out/wp-customer/ -type f -mtime +10 -exec  mv  {} /data/log-backup/sfa/wp-customer/  \; 
 
+##########################修改文件时间
+touch -c -t {YYYY}MMDDhhmm filename
+ll
+stat filename 
+
 
 
