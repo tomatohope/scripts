@@ -608,3 +608,9 @@ eg:
 wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" "https://download.oracle.com/otn-pub/java/jdk/14.0.1+7/664493ef4a6946b186ff29eb326336a2/jdk-14.0.1_linux-x64_bin.tar.gz"
 
 
+# 示例while 循环 不会使得一行变为多行
+while read -r line
+do
+  echo $line
+done < app
+
