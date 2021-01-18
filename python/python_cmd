@@ -1,2 +1,10 @@
 ##出去前后空格
 str.strip()  
+
+##
+import redis
+
+r = redis.Redis(host='127.0.0.1', port=6379, password="xxxx", decode_responses=True)
+used_memory = int(eval(str(r.info()))['used_memory']) / 1024 / 1024
+max_memory = int(eval(str(r.info()))['maxmemory']) / 1024 / 1024
+print(round((used_memory / max_memory) * 100))
