@@ -614,3 +614,5 @@ do
   echo $line
 done < app
 
+#
+tar -zcvf apache.tar.gz --exclude=logs/* /data/ceoServer/apache-tomcat-7.0.107/
