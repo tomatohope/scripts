@@ -210,6 +210,7 @@ echo $a  | sed 's/"/\\\\"/g'`
 # 指定行替换整行：
 sed '行号c 新的内容' 要处理的文件
 sed -e "/url/c${url}" file
+sed -e "/allow/c \            allow 111;" /usr/local/nginx/conf/nginx.conf
 
 # 指定替换某个字符：
 sed -i "s/account/${app}/g" file
