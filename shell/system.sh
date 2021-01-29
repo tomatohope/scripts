@@ -617,3 +617,22 @@ done < app
 
 #
 tar -zcvf apache.tar.gz --exclude=logs/* /data/ceoServer/apache-tomcat-7.0.107/
+
+
+
+######################### crontab 任务未执行
+
+1、crontab 服务未开启
+2、crontab 里没有使用绝对路径(对应相对用户相关命令 和脚本文件 使用 绝对路径)
+3、脚本的执行权限: 阔以 不加， 但后面一定要用 bash 执行
+4、crontab 本身的环境变量问题：
+
+    示例格式： 
+    时间  source /etc/profile && nohup bash /home/wzwp_sfa/task.sh > /dev/null 2>&1 &
+
+5、调试DEDUG输出
+   时间 CND  >>/tmp/xxxlog &   结束后 恢复 为 >/dev/null 2>&1 & 
+6、新创建的cron job，不会马上执行，至少要过2分钟才执行。如果重启cron则马上执行： service crond restart
+7、cron 执行的命令追加，避免撑满邮件系统文件 >/dev/null 2>&1 &； tail -f /var/log/cron
+
+
