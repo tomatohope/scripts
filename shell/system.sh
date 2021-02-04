@@ -636,3 +636,11 @@ tar -zcvf apache.tar.gz --exclude=logs/* /data/ceoServer/apache-tomcat-7.0.107/
 7、cron 执行的命令追加，避免撑满邮件系统文件 >/dev/null 2>&1 &； tail -f /var/log/cron
 
 
+
+yum -y install sysstat
+iostat -x 1 10  
+# %util
+
+
+yum install iotop -y
+iotop
