@@ -648,3 +648,17 @@ iotop
 ## lsof 恢复 还有进程在读的文件 误删除的文件
 lsof | grep filename
 cat /proc/[PID]/fd/1 > filename
+
+
+##磁盘 IO 
+磁盘IO wait > 20ms ： 磁盘故障阀值
+iotop
+iostat -x 1
+lsof -p PID 
+lsof | grep filename
+#####
+
+top 看到 wa 值高，CPU us 低，说明 IO wait 导致 CPU 使用率高（CPU 使用率: idle CPU 空闲率；）
+iostat -x 2 5 # util 值可以再次看磁盘负载是否较高
+iotop # 查看 io 使用较高 的 PID 排行
+lsof -p [PID] # 查看 pid 访问的对应文件
