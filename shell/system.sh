@@ -644,3 +644,7 @@ iostat -x 1 10
 
 yum install iotop -y
 iotop
+
+## lsof 恢复 还有进程在读的文件 误删除的文件
+lsof | grep filename
+cat /proc/[PID]/fd/1 > filename
