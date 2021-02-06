@@ -620,7 +620,7 @@ tar -zcvf apache.tar.gz --exclude=logs/* /data/ceoServer/apache-tomcat-7.0.107/
 
 
 
-######################### crontab 任务未执行
+######################### crontab 任务未执行 和 编写注意事项
 
 1、crontab 服务未开启
 2、crontab 里没有使用绝对路径(对应相对用户相关命令 和脚本文件 使用 绝对路径)
@@ -634,7 +634,7 @@ tar -zcvf apache.tar.gz --exclude=logs/* /data/ceoServer/apache-tomcat-7.0.107/
    时间 CND  >>/tmp/xxxlog &   结束后 恢复 为 >/dev/null 2>&1 & 
 6、新创建的cron job，不会马上执行，至少要过2分钟才执行。如果重启cron则马上执行： service crond restart
 7、cron 执行的命令追加，避免撑满邮件系统文件 >/dev/null 2>&1 &； tail -f /var/log/cron
-
+8、cron 格式： 编写注意事项： 在细分时间粒度上，少用 * ； 比如 * */12 * * * ; 表示 每12个小时 的 整点时，会 00 01 。。。 58 59 地执行； 一定要设置为 01 */12 * * *
 
 
 yum -y install sysstat
