@@ -666,3 +666,10 @@ lsof -p [PID] # 查看 pid 访问的对应文件
 ##### 开机自动挂载  
 echo '/dev/vdb1 /data/extend/ ext4 defaults 0 0' >> /etc/fstab
 mount -a
+
+
+##############  tomcat 新建目录权限  
+umask 0000 权限 == 7777 - 0000 ==> 7777
+
+修改Tomcat的bin/catalina.sh文件
+将“0027”改为“0000”
