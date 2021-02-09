@@ -673,3 +673,715 @@ umask 0000 权限 == 7777 - 0000 ==> 7777
 
 修改Tomcat的bin/catalina.sh文件
 将“0027”改为“0000”
+
+
+
+#####################################################################################################################################################################
+用户 目录 权限 软件安装 
+
+########################
+redis set pass
+mysql 升级至 MySQL5.6.49
+nginx 升级至 Nginx1.15.7: 无需升级，已是 1.16.0 版本，检查可能有误
+OpenSSH升级到7.9
+HTTP/2 升级到新版 \\ curl -I domain \\ nginx server need to add ca ssl
+apache-tomcat7 升级到 7.0.104 host255
+
+redis set pass
+########################
+#host244 /usr/local/redis redis set pass
+
+""" redis install
+https://redis.io/download
+$ wget https://download.redis.io/releases/redis-4.0.8.tar.gz
+$ tar -xzvf redis-4.0.8.tar.gz -C /opt/redis
+$ cd redis-4.0.8
+$ make
+$ make install
+
+vim redis.conf
+    bind 114.86.189.141 10.105.0.0/16
+    port 16079
+    requirepass yourpasswd
+useradd normal_user
+chmod -R 700 /opt/redis
+chown -R normal_user:normal_user /opt/redis
+su normal_user
+$ src/redis-server redis.conf
+$ src/redis-cli
+   auth <apth>
+# usermod -s /sbin/nologin normal_user
+# usermod -s /bin/bash normal_user
+"""
+$ redis-cli
+> config get requirepass
+> config set requirepass <pass>
+> config get requirepass
+
+> auth <pass>
+> config get requirepass
+
+
+mysql 升级至 MySQL5.6.49
+########################
+#host243 host244 mysql 5.6.28 升级至 MySQL5.6.49
+https://dev.mysql.com/doc/refman/5.6/en/installing-source-distribution.html
+https://dev.mysql.com/doc/refman/5.6/en/upgrading.html
+
+#### install
+#
+yum install -y autoconf automake imake libxml2-devel expat-devel cmake gcc gcc-c++ libaio libaio-devel bzr bison ncurses-devel
+#
+wget http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.28.tar.gz
+# install
+tar -xf mysql-5.6.28.tar.gz
+
+cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+-DMYSQL_DATADIR=/usr/local/mysql/data \
+-DDEFAULT_CHARSET=utf8 \
+-DDEFAULT_COLLATION=utf8_general_ci \
+-DWITH_EXTRA_CHARSETS=all \
+-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+-DWITH_FEDERATED_STORAGE_ENGINE=1 \
+-DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
+-DWITHOUT_EXAMPLE_STORAGE_ENGINE=1 \
+-DWITH_ZLIB=bundled \
+-DWITH_SSL=bundled \ # -DWITH_SSL=system
+-DENABLED_LOCAL_INFILE=1 \
+-DWITH_EMBEDDED_SERVER=1 \
+-DENABLE_DOWNLOADS=1 \
+-DWITH_DEBUG=0
+
+#make clean
+#rm CMakeCache.txt
+# https://blog.csdn.net/qinglingls/article/details/95347952
+# https://www.boost.org/users/history/
+
+make && make install
+
+mv /etc/my.cnf /etc/my.cnf_default
+cp /usr/local/mysql/support-files/my-default.cnf /etc/my.cnf
+vi /etc/my.cnf
+[client]
+port = 3307
+socket = /var/mysql/mysql.sock
+[mysql]
+no-auto-rehash
+[mysqld]
+user = mysql
+port = 3307
+basedir = /usr/local/mysql
+datadir =  /var/mysql/data
+pid-file =  /var/mysql/mysql.pid
+relay-log =  /var/mysql/relay-bin
+relay-log-info-file =  /var/mysql/relay-log.info
+#log-bin = /var/mysql/mysql-bin
+server-id = 3306
+socket = /var/mysql/mysql.sock
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+[mysqld_safe]
+## start failure
+log-error =  /var/mysql/mysql.err
+pid-file =  /var/mysql/mysql.pid
+
+useradd mysql
+mkdir -p /var/mysql/data
+chown -R mysql:mysql /var/mysql/data
+cd /usr/local/mysql/scripts
+./mysql_install_db --basedir=/usr/local/mysql  --datadir=/var/mysql/data --user=mysql
+
+    To start mysqld at boot time you have to copy
+    support-files/mysql.server to the right place for your system
+
+    PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+    To do so, start the server, then issue the following commands:
+
+      /usr/local/mysql/bin/mysqladmin -u root password 'new-password'
+      /usr/local/mysql/bin/mysqladmin -u root -h aliyun-test password 'new-password'
+
+    Alternatively you can run:
+
+      /usr/local/mysql/bin/mysql_secure_installation
+
+    which will also give you the option of removing the test
+    databases and anonymous user created by default.  This is
+    strongly recommended for production servers.
+
+    See the manual for more instructions.
+
+    You can start the MySQL daemon with:
+
+      cd . ; /usr/local/mysql/bin/mysqld_safe &
+
+    You can test the MySQL daemon with mysql-test-run.pl
+
+      cd mysql-test ; perl mysql-test-run.pl
+
+    Please report any problems at http://bugs.mysql.com/
+
+    The latest information about MySQL is available on the web at
+
+      http://www.mysql.com
+
+    Support MySQL by buying support/licenses at http://shop.mysql.com
+
+vi /etc/profile
+  	export PATH=$PATH:/usr/local/mysql/bin
+source  /etc/profile
+
+cp  /usr/local/mysql/support-files/mysql.server /etc/init.d/mysql
+chkconfig --add /etc/init.d/mysql
+chkconfig mysql on
+chkconfig --list mysql
+   mysql           0:off   1:off   2:on    3:on    4:on    5:on    6:off
+touch /var/mysql/mysql.err
+chown -R mysql:mysql /var/mysql/
+chown -R mysql:mysql /usr/local/mysql
+chmod -R 700 /var/mysql/
+chmod -R 700 /usr/local/mysql
+su mysql
+service mysql start
+
+mysqladmin -u root password "123456"
+# ln -s /var/lib/mysql/mysql.sock /tmp/mysql.sock
+mysql -uroot -p
+
+mysql> SET PASSWORD FOR 'root'@'localhost' = PASSWORD('new_pass');
+mysql> GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'password' WITH GRANT OPTION;
+mysql> flush privileges;
+exit # su root
+usermod -s /sbin/nologin mysql
+#usermod -s /bin/bash mysql
+#### upgrade
+
+make sure your previous and destination version:
+  eg: 5.6.a --> 5.6.z In-Place Upgrade
+  eg: 5.6   --> 5.7 Logical Upgrade
+  error: 5.5 --> 5.7
+learn about updated
+update one by one version: 5.6 --> 5.7; or 5.6.a --> 5.6.z
+backup your data
+upgrade by your method of installation
+#### official update In-Place Upgrade
+shutting down the old MySQL server
+replacing the old MySQL binaries or packages with the new ones
+restarting MySQL on the existing data directory
+and upgrading any remaining parts of the existing installation that require upgrading.
+
+# commit or rollback transcation
+# get transcation status
+XA RECOVER;
+## COMMIT or ROLLBACK
+XA COMMIT xid ;
+XA ROLLBACK xid;
+XA RECOVER;
+
+# If you use InnoDB, configure MySQL to perform a slow shutdown by setting innodb_fast_shutdown to 0. For example:
+show variables like '%storage_engine%';
+show engines;
+mysql -u root -p --execute="SET GLOBAL innodb_fast_shutdown=0"
+
+# shutdown old server
+mysqladmin -u root -p shutdown
+service mysql status
+ps -ef | grep mysql
+
+# install latest version
+    unpack source file
+    wget http://dev.mysql.com/get/Downloads/MySQL-5.6/mysql-5.6.49.tar.gz
+
+    mv /usr/local/mysql/ /usr/local/mysql_5.6.28
+    cd mysql-5.6.49
+    cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+    -DMYSQL_DATADIR=/usr/local/mysql/data \
+    -DDEFAULT_CHARSET=utf8 \
+    -DDEFAULT_COLLATION=utf8_general_ci \
+    -DWITH_EXTRA_CHARSETS=all \
+    -DWITH_INNOBASE_STORAGE_ENGINE=1 \
+    -DWITH_FEDERATED_STORAGE_ENGINE=1 \
+    -DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
+    -DWITHOUT_EXAMPLE_STORAGE_ENGINE=1 \
+    -DWITH_ZLIB=bundled \
+    -DWITH_SSL=bundled \
+    -DENABLED_LOCAL_INFILE=1 \
+    -DWITH_EMBEDDED_SERVER=1 \
+    -DENABLE_DOWNLOADS=1 \
+    -DWITH_DEBUG=0
+    # if error: mysql Wrong option or path for WITH_SSL=bundled
+    yum -y install openssl-devel
+    mysql Wrong option or path for WITH_SSL=system
+
+    make && make install
+
+cp -rf /var/mysql/data /var/mysql/data_bak
+cp /usr/local/mysql_5.6.28/my.cnf /usr/local/mysql/
+chown -R mysql:mysql /var/mysql
+chown -R mysql:mysql /usr/local/mysql
+#mysqld_safe --user=mysql --datadir=/path/to/existing-datadir &
+mysqld_safe --user=mysql --datadir=/var/mysql/data mysqld_safe &
+
+mysql_upgrade -u root -p
+
+mysqladmin -u root -p shutdown
+mysqld_safe --user=mysql --datadir=/var/mysql/data &
+rm -f /etc/init.d/mysql
+cp  /usr/local/mysql/support-files/mysql.server /etc/init.d/mysql
+chown -R mysql:mysql /etc/init.d/mysql
+
+
+>flush privileges;
+>show variables like '%time_zone%';
+
+
+OpenSSH升级到7.9
+########################
+#host243 host244 host245 OpenSSH_7.4p1 OpenSSH升级到7.9
+#https://www.openssh.com/releasenotes.html
+https://developer.aliyun.com/article/719068
+# 升级依赖: openssl
+# 升级注意：临时安装辅助 telnet 软件
+
+# update openssl
+
+    yum -y install vim git gcc wget make perl-Test-Harness zlib-devel
+    # openssl update
+    https://www.openssl.org/source/
+    git clone https://github.com/openssl/openssl.git
+    git checkout OpenSSL_1_1_1-stable
+
+    ./config shared zlib  --prefix=/usr/local/openssl && make && make install
+
+    mv /usr/bin/openssl /usr/bin/openssl.old
+    mv /usr/include/openssl /usr/include/openssl.old
+    ln -s /usr/local/openssl/bin/openssl /usr/bin/openssl
+    ln -s /usr/local/openssl/include/openssl /usr/include/openssl
+    ln -sf /usr/local/openssl/lib/libcrypto.so /lib/libcrypto.so
+
+    echo "/usr/local/openssl/lib" >>/etc/ld.so.conf
+    ldconfig -v
+
+    openssl version
+
+# update openssh
+
+    # tmp install telnet
+        yum install -y telnet-server
+        yum install -y xinetd
+        systemctl start telnet.socket
+        systemctl start  xinetd
+
+        echo 'pts/0' >>/etc/securetty
+        echo 'pts/1' >>/etc/securetty
+        systemctl restart telnet.socket
+
+        systemctl enable xinetd.service
+        systemctl enable telnet.socket
+
+        systemctl stop telnet.socket
+        systemctl stop  xinetd
+
+        systemctl start telnet.socket
+        systemctl start  xinetd
+
+        # connect test
+        telnet ip port
+
+    # install openssh
+
+        cp -r /etc/ssh /etc/ssh.old
+        ls /etc | grep  ssh
+
+        rpm -qa|grep openssh
+        rpm -e --nodeps openssh-clients-7.4p1-16.el7.x86_64
+        rpm -e --nodeps openssh-7.4p1-16.el7.x86_64
+        rpm -e --nodeps openssh-server-7.4p1-16.el7.x86_64
+        rpm -qa|grep openssh
+
+        install openssh
+        https://www.openssh.com/releasenotes.html
+        wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-7.9p1.tar.gz
+
+        install -v -m700 -d /var/lib/sshd
+        chown -v root:sys /var/lib/sshd
+        groupadd -g 50 sshd
+        useradd -c 'sshd PrivSep' -d /var/lib/sshd -g sshd -s /bin/false -u 50 sshd
+        cd openssh-7.9p1
+        ./configure --prefix=/usr --sysconfdir=/etc/ssh --with-md5-passwords --with-privsep-path=/var/lib/sshd
+            OpenSSH has been configured with the following options:
+                                 User binaries: /usr/bin
+                               System binaries: /usr/sbin
+                           Configuration files: /etc/ssh
+                               Askpass program: /usr/libexec/ssh-askpass
+                                  Manual pages: /usr/share/man/manX
+                                      PID file: /var/run
+              Privilege separation chroot path: /var/lib/sshd
+                        sshd default user PATH: /usr/bin:/bin:/usr/sbin:/sbin
+                                Manpage format: doc
+                                   PAM support: no
+                               OSF SIA support: no
+                             KerberosV support: no
+                               SELinux support: no
+                          MD5 password support: yes
+                               libedit support: no
+                               libldns support: no
+              Solaris process contract support: no
+                       Solaris project support: no
+                     Solaris privilege support: no
+                   IP address in $DISPLAY hack: no
+                       Translate v4 in v6 hack: yes
+                              BSD Auth support: no
+                          Random number source: OpenSSL internal ONLY
+                         Privsep sandbox style: seccomp_filter
+                          Host: x86_64-pc-linux-gnu
+                      Compiler: gcc
+                Compiler flags: -g -O2 -pipe -Wall -Wpointer-arith -Wuninitialized -Wsign-compare -Wformat-security -Wsizeof-pointer-memaccess -Wno-pointer-sign -Wno-unused-result -fno-strict-aliasing -D_FORTIFY_SOURCE=2 -ftrapv -fno-builtin-memset -fstack-protector-strong -fPIE
+            Preprocessor flags:  -D_XOPEN_SOURCE=600 -D_BSD_SOURCE -D_DEFAULT_SOURCE
+                  Linker flags:  -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -fstack-protector-strong -pie
+                     Libraries: -lcrypto -ldl -lutil -lz  -lcrypt -lresolv
+
+        chmod 600 /etc/ssh/ssh_host_rsa_key
+        chmod 600 /etc/ssh/ssh_host_ecdsa_key
+        chmod 600 /etc/ssh/ssh_host_ed25519_key
+        make install
+        install -v -m755 contrib/ssh-copy-id /usr/bin
+        install -v -m644 contrib/ssh-copy-id.1 /usr/share/man/man1
+        install -v -m755 -d /usr/share/doc/openssh-7.9p1
+        install -v -m644 INSTALL LICENCE OVERVIEW README* /usr/share/doc/openssh-7.9p1
+
+        cp -p contrib/redhat/sshd.init /etc/init.d/sshd
+        chmod +x /etc/init.d/sshd
+        chkconfig --add sshd
+        chkconfig sshd on
+        chkconfig --list sshd
+
+        mv /etc/ssh.old/sshd_config /etc/ssh.old/sshd_config_default
+        cp /etc/ssh.old/sshd_config_default /etc/ssh/
+        diff /etc/ssh/sshd_config /etc/ssh/sshd_config_default
+        vim  /etc/ssh/sshd_config
+        systemctl restart sshd
+
+        ssh -V
+        rpm -qa|grep openssl \\don't remove these ; avoid yum -y install wget ..etc  \\ no file libssl.so.10
+        #rpm -e --nodeps openssl-1.0.2k-16.el7_6.1.x86_64
+        #rpm -e --nodeps openssl-libs-1.0.2k-16.el7_6.1.x86_64
+
+        systemctl disable xinetd.service
+        systemctl disable telnet.socket
+
+        systemctl stop telnet.socket
+        systemctl stop  xinetd
+
+
+HTTP/2 升级到新版 \\ curl -I domain \\ nginx server need to add ca ssl
+########################
+#host244 host245
+# if ssl cert on nginx sever \\ nginx conf: listen 443 ssl http2;
+# https://httpwg.org/specs/rfc7540.html#starting
+# 升级 nginx 可以升级到 http/2
+# nginx version 1.16.0
+
+# quickly
+
+    # backup nginx and config file
+    # ./configure ... && make  && make install
+    # nginx -t
+    # nginx  -s reload
+
+    # nginx install
+
+        1 #### package prepare
+        wget http://nginx.org/download/nginx-1.16.0.tar.gz
+
+        2 #### install
+        yum install  -y make gcc gcc-c++ pcre-devel \\ openssl-devel: don't install it if has update ssh
+        tar -zxvf nginx-1.16.0.tar.gz
+        cd nginx-1.16.0
+        #./configure --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module --with-http_realip_module
+        ./configure --prefix=/usr/local/nginx \\ monitor old version
+
+            Info:
+            Configuration summary
+              + using system PCRE library
+              + using system OpenSSL library
+              + using system zlib library
+
+              nginx path prefix: "/usr/local/nginx"
+              nginx binary file: "/usr/local/nginx/sbin/nginx"
+              nginx modules path: "/usr/local/nginx/modules"
+              nginx configuration prefix: "/usr/local/nginx/conf"
+              nginx configuration file: "/usr/local/nginx/conf/nginx.conf"
+              nginx pid file: "/usr/local/nginx/logs/nginx.pid"
+              nginx error log file: "/usr/local/nginx/logs/error.log"
+              nginx http access log file: "/usr/local/nginx/logs/access.log"
+              nginx http client request body temporary files: "client_body_temp"
+              nginx http proxy temporary files: "proxy_temp"
+              nginx http fastcgi temporary files: "fastcgi_temp"
+              nginx http uwsgi temporary files: "uwsgi_temp"
+              nginx http scgi temporary files: "scgi_temp"
+
+        make && make install
+
+        3 #### start
+        vim /etc/init.d/nginx
+        chmod 777 /etc/init.d/nginx
+        service nginx start | stop | restart | reload | stop
+        chkconfig --add /etc/init.d/nginx
+        chkconfig nginx on
+        chkconfig --list nginx
+            nginx           0:off   1:off   2:on    3:on    4:on    5:on    6:off
+
+        4 #### port and firewall
+        netstat -nltp|grep nginx
+            tcp        0      0 0.0.0.0:80      0.0.0.0:*      LISTEN      8078/nginx: master
+
+        # you can open if allow
+        systemctl  status | start firewalld
+        firewall-cmd --zone=public --add-port=80/tcp --permanent
+        firewall-cmd --reload
+
+        # 4-1 普通用户启动 nginx
+            useradd nginx
+            vim nginx.conf
+                user nginx;
+                listen 8081; #当 su nginx 启动时；普通用户不能监听 1024 以下的端口
+            chown -R nginx:nginx /usr/local/nginx ## 如果 nginx 运行还涉及比如额外的日志路径，也要给对应权限
+            chmod -R 700 /usr/local/nginx
+            su nginx
+            /usr/local/nginx/sbin/nginx
+            exit
+            将80 端口转发至 8081 # 这种方法会耗费服务器性能
+                  systemctl start firewalld
+                  firewall-cmd --zone=public --list-ports
+                  firewall-cmd --zone=public --add-port=ALL/tcp --permanent
+                  firewall-cmd --zone=public --add-port=0-65535/tcp --permanent ##开发所有端口,这里因为外部还有一层防火墙
+                  firewall-cmd --add-forward-port=port=80:proto=tcp:toaddr=127.0.0.1:toport=8081 --permanent ## 配置端口转发，本地需要有对应的两个端口
+                  firewall-cmd --reload
+
+
+            setcap cap_net_bind_service=+eip /usr/local/nginx/sbin/nginx #获取到 root的权限， 1024 以下端口默认普通用户不能使用; 推荐方式
+            usermod -s /sbin/nologin nginx
+        5 ####访问测试，看是否可以看到 nginx 首页
+
+    # nginx upgrade
+        #backup
+            cp -r /usr/local/nginx /usr/local/nginx_bak
+            ll /usr/local/nginx_bak
+        # update
+            wget http://nginx.org/download/nginx-1.16.0.tar.gz
+            yum install  -y make gcc gcc-c++ pcre-devel \\ openssl-devel: don't install it if has update ssh
+            tar -zxvf nginx-1.16.0.tar.gz
+            cd /root/nginx-1.16.0
+            #./configure --help \\ old nginx -V get configure info
+            #./configure --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module --with-http_realip_module --with-http_v2_module \\ update \\ with-http_stub_status_module nginx status
+            ./configure --prefix=/usr/local/nginx --with-http_ssl_module --with-http_v2_module  --with-openssl=/usr/local/openssl
+            make
+                vim /root/nginx-1.16.0/auto/lib/openssl/conf
+                    line 39-45 remove .openssl
+                        CORE_INCS="$CORE_INCS $OPENSSL/include
+                ./configure && make again
+            make install
+
+    #  test
+         nginx conf:
+             # http to https
+             #server {
+             #       listen       80;
+             #       server_name  stg-op.xxx.com;
+             #       return 301 https://$server_name$request_uri;
+             #
+             #   }
+
+             # http2 \\ firefox browser test result: X-Firefox-Spdy: "h2"
+              server {
+                    listen       443 ssl http2;
+                    server_name  stg-op.xxx.com;
+
+                    ssl_certificate      /root/cert/Nginx/stg-op.xxx.com.crt;
+                    ssl_certificate_key  /root/cert/Nginx/stg-op.xxx.com.key;
+
+                    # ssl_session_cache    shared:SSL:1m;
+                    # ssl_session_timeout  5m;
+
+                    #ssl_ciphers  HIGH:!aNULL:!MD5;
+                    # adapt to more browser
+                    # ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:DHE-RSA-AES128-GCM-SHA256:AES256+EDH:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4;
+                    }
+
+
+apache-tomcat7 升级到 7.0.107
+########################
+host255
+
+
+
+
+
+##########################################################################
+
+http{
+    server_tokens off; \\ 隐藏 nginx 版本信息
+    autoindex off; \\ 不递归目录 禁止网站目录浏览
+
+        # nginx conf ssl
+            server {
+            listen       443 ssl;
+            server_name  localhost;
+
+            ssl_certificate      cert.crt;
+            ssl_certificate_key  cert.key;
+
+            ssl_session_cache    shared:SSL:1m;
+            ssl_session_timeout  5m;
+
+            ssl_ciphers  HIGH:!aNULL:!MD5;
+        #    ssl_prefer_server_ciphers  on;
+
+            location / {
+                root   html;
+                index  index.html index.htm;
+                }
+            }
+        # nginx -t
+        # nginx -s stop && ps -ef | grep nginx
+        # nginx
+
+            去阿里云申请一个证书, 申请之后将 nginx 的证书文件下载下来, 有两个文件, 后缀分别是 pem 和 key 或者是 crt 和 key
+            # ssl写在443端口后面。这样http和https的链接都可以用
+            listen 443 ssl http2 default_server;
+            server_name chat.chengxinsong.cn;
+
+            # HSTS的合理使用，max-age表明HSTS在浏览器中的缓存时间，includeSubdomainscam参数指定应该在所有子域上启用HSTS，preload参数表示预加载，通过Strict-Transport-Security: max-age=0将缓存设置为0可以撤销HSTS
+            add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+
+            ssl_certificate   /usr/local/nginx/cert/2540136_chat.chengxinsong.cn.pem;
+              ssl_certificate_key /usr/local/nginx/cert/2540136_chat.chengxinsong.cn.key;
+
+            # 分配20MB的共享内存缓存，不同工作进程共享TLS会话信息
+            # ssl_session_cache shared:SSL:20m;
+
+            # 设置会话缓存过期时间1h
+            ssl_session_timeout 60m;
+
+            # TLS协议的合理配置
+            # 指定TLS协议的版本，不安全的SSL2和SSL3要废弃掉
+            ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+
+            # 启用ssl_prefer_server_ciphers，用来告诉Nginx在TLS握手时启用服务器算法优先，由服务器选择适配算法而不是客户端
+            ssl_prefer_server_ciphers on;
+
+            # 优先选择支持前向加密的算法，且按照性能的优先顺序排列
+            ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;
+
+            # 会话恢复的合理使用
+            # 配置会话票证，减少了TLS握手的开销
+            ssl_session_tickets on;
+
+            # nginx conf
+                user  nginx nginx;
+                worker_processes  1;
+
+                error_log  /var/log/nginx/error.log;
+
+                pid        /var/run/nginx/nginx.pid;
+
+                events {
+                    use epoll;
+                    worker_connections  1024;
+                }
+
+                http {
+                    include       mime.types;
+                    default_type  application/octet-stream;
+                    charset UTF-8;
+
+                    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                                      '$status $body_bytes_sent "$http_referer" '
+                                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+                    access_log  /var/log/nginx/access.log  main;
+
+                    sendfile        on;
+
+                    keepalive_timeout  65;
+
+                    #隐藏Nginx版本信息，禁止网站目录浏览
+                    server_tokens off;
+                    autoindex off;
+                    #当FastCGI后端服务器处理请求给出http响应码为4xx和5xx时，就转发给nginx
+                    fastcgi_intercept_errors on;
+
+                    #关于fastcgi的配置
+                    fastcgi_connect_timeout 300;
+                    fastcgi_send_timeout 300;
+                    fastcgi_read_timeout 300;
+                    fastcgi_buffer_size 64k;
+                    fastcgi_buffers 4 64k;
+                    fastcgi_busy_buffers_size 128k;
+                    fastcgi_temp_file_write_size 128k;
+
+                    #支持gzip压缩
+                    gzip on;
+                    gzip_min_length 1k;
+                    gzip_buffers 16 64k;
+                    gzip_http_version 1.1;
+                    gzip_comp_level 6;
+                    gzip_types text/plain application/x-javascript text/css application/javascript text/javascript image/jpeg image/gif image/png application/xml application/json;
+                    gzip_vary on;
+                    gzip_disable "MSIE [1-6].(?!.*SV1)";
+
+                    server {
+                        listen 80;
+                        server_name www.lcgod.com lcgod.com;
+                        charset utf-8;
+                        access_log  /var/log/nginx/access.log main;
+                        rewrite ^/(.*)$ https://www.lcgod.com/$1 permanent;
+                    }
+
+                    server {
+                        listen               443 ssl http2;
+                        server_name          www.lcgod.com lcgod.com;
+
+                        #301重定向
+                        if ($host = 'lcgod.com') {
+                            rewrite  ^/(.*)$    https://www.lcgod.com$1 permanent;
+                        }
+
+                        # 不产生日志
+                        access_log off;
+                        ssl_certificate /etc/nginx/server.crt;
+                        ssl_certificate_key /etc/nginx/server.key;
+                        ssl_stapling on;
+                        ssl_stapling_verify on;
+                        ssl_trusted_certificate /etc/nginx/server.crt;
+                        resolver 8.8.8.8 114.114.114.114 valid=300s;
+                        resolver_timeout 5s;
+                        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+                        ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!aNULL:!MD5:!RC4:!DHE:!kEDH;
+                        add_header Strict-Transport-Security "max-age=15768001; preload";
+                        add_header X-Content-Type-Options nosniff;
+
+                        #设置网站根目录
+                        root   /home/www/blog;
+                        index  index.php index.html;
+
+                        #设置css/javascript/图片等静态资源的缓存时间
+                        location ~ .*\.(css|js|ico|png|gif|jpg|json|mp3|mp4|flv|swf)(.*) {
+                            expires 60d;
+                        }
+
+                        # URLRwrite
+                        location / {
+                            try_files $uri $uri/ /index.php?$query_string;
+                        }
+
+                        ## 设置Nginx和php通信机制为tcp的socket模式，而不是直接监听9000端口
+                        location ~ \.php(.*)$ {
+                            fastcgi_pass unix:/var/run/php-fpm/php-fpm.sock;
+                            fastcgi_index index.php;
+                            fastcgi_split_path_info ^((?U).+\.php)(/?.+)$;
+                            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                            include fastcgi_params;
+                        }
+                    }
+                }
+		
