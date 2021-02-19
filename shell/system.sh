@@ -40,6 +40,9 @@ c
  nmap -p 22 220.181.111.188
  netstat -lnp | grep PORT
 
+# 按第二列排序  
+sort -k2 -rn
+
 # 常见排查命令
  cat  /var/log/messages  | grep PID
  ps aux|head -1;ps aux|grep -v PID|sort -rn -k +3|head
