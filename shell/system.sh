@@ -670,6 +670,12 @@ lsof -p [PID] # 查看 pid 访问的对应文件
 echo '/dev/vdb1 /data/extend/ ext4 defaults 0 0' >> /etc/fstab
 mount -a
 
+############## java 内存管理 gc  
+jmap -histo:live 5237  ##手工fullGC，应减少操作 应在程序空闲时；其他查看命令 gc 条件 （新生代 老年代 依次循环使用 永生代为方法区）; gc 回收条件： heap使用将满； gc回收失败，内存泄漏：对象还在被引用
+jmap -heap 5237        ##查看 java 进程总的内存占用信息  https://www.cnblogs.com/huanglog/p/10302901.html JAVA应用内存占用=最大堆内存+线程的栈占用+直接内存+持久代+共享库，也就是这个差异值RES-（JAVA堆内存+Perm Gen）=203.7M
+jinfo 5237 #jvm info
+
+https://www.cnblogs.com/NGU-PX/p/14261488.html
 
 ##############  tomcat 新建目录权限  待验证  
 umask 0000 权限 == 7777 - 0000 ==> 7777
