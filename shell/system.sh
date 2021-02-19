@@ -681,9 +681,9 @@ umask 0000 权限 == 7777 - 0000 ==> 7777
     这里出现的权限问题不是nginx程序用户来创建的，而是运行该服务的用户；x 权限是打开目录的权限
     umask 新文件或目录默认权限：目录来说最大的权限是 777，实际新目录默认权限777-xxx; 对于文件来说最大的权限一般为 666; /etc/profile 或 ~/.bashrc 里配
     s 与 t 权限： s 权限 chmod u +s  或 chmod g + s 让普通用户具有该属主 或 属组 的 权限； t 权限是让用户只能更改自己创建的文件  
-    facl 文件访问控制权限：授予特定用户或组权限  
+    facl 文件访问控制权限：授予特定用户或组权限 
         setfacl  --help
-        setfacl -d -m u:username:rwx /data/upload_file/ #让用户创建的子目录都具有rwx的权限
+        setfacl -d -m u:username:rwx /data/upload_file/ #让用户创建的子目录都具有rwx的权限； 权限继承  
         getfacl /data/upload_file/
         setfacl -b  /data/upload_file/                  #remove all acl
 #####################################################################################################################################################################
