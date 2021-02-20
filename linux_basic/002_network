@@ -1,0 +1,4 @@
+# iftop \\ network
+iftop -P -i [network_name]
+# Ntop
+#nmap \\ network discovery

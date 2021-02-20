@@ -1,0 +1,32 @@
+1 error info
+2 log info
+3 analyse
+##################
+
+### system boot failure
+内核 主板
+/boot  /etc/inittab /etc/fstab
+kernel
+断电
+  umount /dev/...
+  fsck.ext4 -y /dev...
+
+### system no response:  bug 硬件
+
+### network
+硬件 网络 网卡 DNS
+netstat -ntlp | grep [port]
+iptables
+selinux
+network
+
+### file
+lsof | grep delete \\ find has deleted file, but process is using
+> [thesefile]      \\ find has deleted file, but process is using
+# too many open files
+   ulimited -n 65535
+   /etc/security/limits.conf
+   restart process
+$ no space lest on device
+
+

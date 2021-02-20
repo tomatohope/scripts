@@ -1,0 +1,8 @@
+###pssh \\ python module
+  client --> remote host with auth key ; username opsuser
+  install : pip install pssh
+  commands: pssh pscp prsync pnuke pslurp
+
+###pdsh
+
+####mussh

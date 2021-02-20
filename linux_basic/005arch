@@ -1,0 +1,72 @@
+#### Nginx
+nginx 正则 转发规则: 参考官网
+nginx rewrite： 参考官网
+alias 与 root:
+    alias: $alias/$url
+    root:  $dir
+
+#### keepalive
+
+#### HA
+
+#### mysql主从复制，读写分离
+#### mysql mmm 互为主从高可用
+#### mysql 多主多从 keepalived + mysql 高可用
+#############################################
+#### nginx
+## location
+优先级：从上到下编写  (location = ) > (location /xxx/yyy/zzz) > (location ^~ /xxx) > (location ~ 匹配开头, ~* 匹配结尾)
+> (location /xxx) > (location /)
+
+1. = 精准匹配: 只匹配指定的url后缀
+location = / {
+    ...
+    }
+2. /xxx 所有以 /xxx 开头
+location /xxx {
+   ...
+   }
+3. 匹配 所有以 /xxx 开头，优先级高于 前面的 2.
+location ~ /xxx {
+    ...
+    }
+4. 匹配 所有以 /xxx 开头，优先级高于 前面的 3.
+location ^~ /xxx {
+    ...
+    }
+5. 匹配 以 gis 或 png 结尾
+localtion ~* \.(gis|png)$ {
+    ...
+    }
+
+##location 正则表达式：
+#元字符
+. 除换行人员字符
+\w 字母数字或下划线
+\s 任意空白符
+\d 数字
+\b 单词开头或结束
+^  开始
+$  结束
+#重复
+* 重复0次或多次
++ 重复1次或多次
+? 重复0次或一次
+{n} 重复n次
+{n,} 重复 >= 次
+{n,m} 重复 [n,m] 次
+
+# rewrite [url1] [url2]
+last	本条规则匹配完成后继续向下匹配新的location URI规则
+break	本条规则匹配完成后终止，不在匹配任何规则
+redirect	返回302临时重定向
+permanent	返回301永久重定向
+
+# http 请求
+
+##  并发计算公式：worker_precess * worker_connections/4|2
+    /4 动态资源  /2 静态资源
+    动态资源： proxy_pass [path];
+    静态资源： root|alias [path]; autoindex off; index index.html index.htm;
+
+

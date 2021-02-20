@@ -1,0 +1,400 @@
+#### user
+### delete special user and group
+adm lp sync shutdown halt news uucp operator games gopher ...
+userdel [user_name]
+groupdel [group_name]
+### don't allow login
+usermod -s /sbin/nologin [user_name]
+
+#### service
+### don't allow service auto start
+chkconfig --level 345 [server_name] off
+
+#### pass
+### login with pass or key
+complex pass; no suggested way ; login with key(pri-key --> pub-key) by tool of which are SecureCRT putty Xshell
+
+### auth key
+dir: ~/.ssh/
+authorized_keys: a id_rsa.pub record from client host's id_rsa.pub
+id_rsa.pub: generate by exec "ssh-keygen -t rsa" on your host
+id_rsa: generate by exec "ssh-keygen -t rsa" on your host
+known_hosts: a id_rsa.pub record after your login a host
+
+### only auth by key not pass
+/etc/ssh/sshd_config
+    PasswordAuthentication no
+    PubkeyAuthentication yes
+/etc/rc.d/init.d/sshd restart
+
+#### su sudo
+### su
+switch user ; need pass, and don't give root pass
+### sudo
+give user some permission by sudo, rather than give pass
+config:
+    /etc/sudoers
+    [user_name] ALL = [NOPASSWD]: [CMD]
+    user1 ALL = /bin/cat /root/file1 ## user1 can cat /root/file1 with users's pass
+    user1 ALL = NOPASSWD: /bin/cat /root/file1 ## user1 can cat /root/file1 without users's pass
+    user1 ALL=(ALL) NOPASSWD: ALL ## user1 can exec all commonds without users's pass
+
+#### login info when login in
+### remove or modify these file
+    /etc/issue /etc/issue.net /etc/redhat-release
+    /etc/motd ## notice info
+
+#### don't allow reboot by keyboard
+### < centos5.x
+vim /etc/inittab
+    #ca:ctlaltdel:/sbin/shutdown -t3 -r now
+exec
+    teinit q
+### > centos6.x
+vim /etc/inittab
+    #exec shutdown -r now "Control-Alt-Delete pressed"
+
+#### login way
+don't telnet
+use ssh ## secure and gzip
+vim /etc/ssh/sshd_config
+    Port 197090 ## >10000 and unknown number
+    ListenAddress 192.168.1.1 ## bundle ip
+    HostKey /etc/ssh/ssh_host_key ## key file path
+    ServerKeyBits 1024 ## key length
+    LoginGraceTime 600 ## login failure interval time unit:seconds
+    KeyRegenerationInterval 3600 ## unit:seconds
+    PermitRootLogin no
+    IgnoreRhosts yes ## if using file .rhosts
+    IgnoreUserKnownHosts yes
+    StrictModes yes ## don't allow other user modify user's home dir
+    X11Forwarding no
+    PrintMotd yes ## notice warning info
+    LogLevel INFO
+    PasswordAuthentication yes
+    PermitEmptyPasswords no
+    AllowUsers admin ## allow user or host eg"AllowUsers user1 user2"
+
+#### bash history
+vi /etc/bashrc
+    HISTFILESIZE=20 \\ save lines
+    HISTSIZE=10     \\ display lines
+    HISTTIMEFORMAT='%F %T '  \\ format
+    export HISTTIMEFORMAT
+source /etc/bashrc
+
+#### secure shell history storage locally
+vi /etc/profile
+    USER_IP=$(who -u am i 2>/dev/null | awk '{print $NF}' | sed -e 's/[()]//g')
+    HISTDIR=/usr/share/.history
+    if [ -z ${USER_IP} ];then
+        USER_IP=$(hostname)
+    fi
+    if [ ! -d ${HISTDIR} ];then
+        mkdir -pm 777 ${HISTDIR}
+    fi
+    if [ ! -d ${HISTDIR}/${LOGNAME} ];then
+        mkdir -pm 300 ${HISTDIR}/${LOGNAME}
+    fi
+    export HISTSIZE=4000
+    DT=$(date +%Y%m%d_%H%M%S)
+    export HISTFILE="${HISTDIR}/${LOGNAME}/${USER_IP}.history.${DT}"
+    export HISTTIMEFORMAT="[%Y.%m.%d %H:%M:%S]"
+    chmod 600 ${HISTDIR}/${LOGNAME}/*.history* 2>/dev/null
+source /etc/profile
+
+
+#### tcp_wrappers firewall:  iptables --- > tcp_wrappers firewall
+/etc/hosts.allow
+/etc/hosts.deny
+rpm -q tcp_wrappers
+objects: some service with libwrapped
+eg；
+   #service:host(s)
+   sshd: ip
+check_rule: allow ---> deny
+   eg:
+   vi /etc/hosts.allow
+   sshd: ip1
+   vi /etc/hosts.deny
+   sshd: ALL
+
+#### lock file
+chattr -R [+-][ai] [filename]
++ : add
+-:  remove
+a: >>
+i: dont't update all
+lsattr -adRv [filename]
+
+# notice: software install && logfile update ; / /dev /tmp /var can't affect
+chattr -R +i /bin /boot /lib /sbin /usr/bin /usr/include /usr/lib /usr/sbin
+chattr +i /etc/passwd  /etc/shadow /etc/hosts /etc/resolv.conf /etc/fstab /etc/sudoers
+chattr +a /var/log/messages /var/log/wtmp
+
+#### check file permisson
+find  /root/  -maxdepth 1 -perm 644 | xargs ls -al
+-perm(permission)
+-perm mode：精确匹配权限
+-perm -mode：比如mode=644那么转换成二进制为110 100 100，而被查找的文件的权限位也可以被转换成一个二进制数，两者在位上为1的部分必须完全匹配，而0则不管
+-perm +mode：匹配一个1即可
+find / -nouser -o -nogroup
+
+#### /tmp /var/tmp
+# 单独分区时
+vi /etc/fstab
+    LABLE=/tmp /tmp ext3 rw,nosuid,noexec,nodev 0 0
+    LABLE=/var/tmp /var/tmp ext3 rw,nosuid,noexec,nodev 0 0
+# 子目录时 /var/tmp
+mv /var/tmp/* /tmp
+ln -s /tmp /var/tmp
+
+#### softwarw update
+rpm -qa | grep yum
+rpm -ivh yum....rpm
+/etc/yum.repos.d/*.repo
+/etc/yum.conf
+yum -y install [software_name]
+yum -y remove [software_name]
+yum update \\ update all rpm
+yum update [software]
+yum upgrade \\ update all and old version
+yum info [software_name]
+yum info updates \\ update available
+yum info installed
+yunm info | clean
+
+#### rootkit
+#check file[ifconfig ls ps ...] unit
+# core rootkit: command process
+# check tool:
+1 RKHunter: 设置跳过 keypress | 设置cron
+2 chkrootkit: http://www.chkrootkit.org
+  exec: chkrootkit
+  result:" ... INFECTED" tell us that you need to rebuild a system
+  before: backup some commands:
+        mkdir /usr/share/.commands
+        cp `which --skip-alias awk cut echo find egrep id head ls netstat ps strings sed uname` /usr/share/.commands
+        chkrootkid -p /usr/share/.commands
+        tar -zcvf commands.tar.gz /usr/share/.commands.tar.gz
+
+#### suffer analyse
+disconnect network
+read login log; read other PTY
+backup data
+fix bug
+recovery
+
+#### read login user
+w
+passwd -l [username] \\ lock user
+kill -9 PID([username])
+lastlog \\ /var/log/wtmp
+/var/log/message
+/var/log/secure \\  more /var/log/secure | grep Accepted
+history
+pidof sshd
+ls -al /proc/[PID]/exe \\ get exec cmd
+ls -al /proc/[PID]/fd \\ cat ulimit 打开文件数
+ulimitd -n [PID]
+fuser -n tcp [port] \\ get port's pid
+
+
+#### check file system unit
+rpm -Va [cmd]
+   S : lenth has changed
+   M : permission or type has changed
+   5 : MD5 has changed
+   ...
+
+
+#### 操作系统基础知识
+     内核优化; 系统内核，用户 执行过程
+
+     数据库优化 数据备份恢复 数据执行回滚工具
+
+     docker file 编译
+     中间件-使用
+     k8s 底层: k8s create he apply的区别
+
+################################
+redhat7 linux basic
+########################
+basic shell terminal:
+快捷键：
+ctl + a: 行首
+ctl + e: 行尾
+ctl + u: 清除光标前字符
+ctl + k: 清除光标后字符
+ctl + r: 查找历史命令
+ctl + d: exit
+; 分割同行中的命令
+ESC + . : 复制最后一个命令的参数
+;       : 分隔同一行中的命令 或 &&
+!num    : 执行历史记录
+file filename: 查看文件类型
+
+
+账户密码：
+passwd username
+echo password | passwd student --stdin
+
+时间日期：
+date -d "1 day ago" +%Y-%m-%d
+date -d "+-1 days"
+date --help
+
+内容统计：
+wc -l 行数
+   -w 单词书
+   -c 字节数，字符数（包括换行符，所有 echo > 会带有换行符，可以 echo -n > 归并）
+
+######################## 目录
+
+/usr/local /etc
+touch -t 时间 file #修改时间
+touch -r file1 file2 #修改file1文件时间与file2相同
+cd -    # 切换到上次使用的目录
+cd ~    # 切换到家目录
+cp file1 file2 file3 dir
+mv file1 file2 file2=3 dir
+cp -r dir1 dir2 dir
+cp -r dir1 dir2 dir3 dir
+mv dir1 dir2 dir
+rm -rf dir1 dir2 dir3
+mkdir -p /tmp/dir1/dir2/dir3/dir4/{dir5,dir6,dir7}
+ls -l dir1 dir2
+touch file1 file2 file3
+mkdir file1 file2 file3
+rmdir file1 file2 file3 # delete empty dir
+
+ls *
+ls file*
+ls *file*
+ls [ab]*
+ls ??
+ls ???
+ls ~/111
+echo ~/11 ## print dir
+echo {file1,file2,file3}.log
+echo file{a..c}.log
+echo file{1..3}.log
+echo file{a,b}{1,2}.log
+echo "111 \$1"
+ls [!b]*
+ls ???*
+ls *[[:digit:]]*
+man cmd
+man -k diff tar
+
+######################## 文件编辑
+########
+输出重定向
+tee [-a]
+> file1
+>> file1
+2> file1
+2>/dev/null
+>/dev/null 2>&1 &
+tee file1 ## > file1
+vi vim # vim 与 > >> 一样没有文件会创建文件
+    i ESC :q! :wq :set nu /keyword N/n p pp y yy x d/D u ^ $
+    multi line: ctrl+v --> select multi line --> I --> input your keyword --> ESC两次
+    copy-paste: ctrl+v --> select multi line --> y --> 光标移动 --> p
+date  +"%Y%m%d%H%M%S"
+date -d "1 day ago"
+
+######################## 用户管理
+
+######## 用户切换
+su 和 su -
+su   : 使用旧的用户的环境变量和旧的用户的工作目录
+su - : 使用新的用户的环境变量和旧的用户的工作目录
+
+######## 用户提权 /etc/sudoers
+sudo su
+sudo [cmd]
+
+######## useradd 与 userdel
+对于要 delete 的用户，期望使用命令 userdel -r username; 避免造成无主文件被分配给新用户的漏洞
+或者在新建用户前 find / -nouser -o nogroup 2> /dev/null 清理掉
+usermod -L username #锁定账户
+usermod -U username #解锁账户
+
+######## 密码管理
+passwd username
+chage -m 0 -M 90 -W 7 -I 14 username
+chage -d 0 username ## 密码更改剩余时间，设置下次登录强制更新密码
+chage -l username   ## list user pass info
+chage -E YYYY-MM-DD username ## 设置账户过期日期
+
+######## 密码策略
+cat /etc/login.defs  |  grep -v "^$" | grep -v "^#"
+    PASS_MAX_DAYS   60
+    PASS_MIN_DAYS   0
+    PASS_MIN_LEN    10
+    PASS_WARN_AGE   7
+
+
+cat /etc/pam.d/system-auth #登录过程检查: 认证 账户 密码 session
+    auth 组件：认证接口，要求并验证密码
+    account组件：检测是否允许访问。检测账户是否过期或则在末端时间内能否登陆。
+    password组件：设置并验证密码
+    session组件：配置和管理用户sesison
+
+    required:该模块必须success才能进行继续。即使失败用户也不会立刻获知，直到所有相关模块完成。
+    requisite：该模块必须success才能使认证继续进行。
+    suffifient:如果失败则忽略。
+    optinal:忽略结果，不管是否失败
+
+    #password requisite pam_pwquality.so ## pam_cracklib.so 类似
+    password  requisite pam_pwquality.so minlen=8 dcredit=-1 ucredit=-1 lcredit=-1 ocredit=-1 try_first_pass local_users_only retry=3 authtok_type=
+    如果密码过期，pam_cracklib.so要求一个新密码，如果新密码复杂度不满足不要，会在给用户两次机会重新输入密码强度够的密码。一共三次。pam_cracklib.so支持的选项如下：
+    minlen=N：新密码的最小长度
+    dcredit=N：当N>0时表示新密码中数字出现的最多次数；当N<0时表示新密码中数字出现最少次数；
+    ucredit=N: 当N>0时表示新密码中大写字母出现的最多次数；当N<0时表示新密码中大写字母出现最少次数；
+    lcredit=N: 当N>0时表示新密码中小写字母出现的最多次数；当N<0时表示新密码中小写字母出现最少次数；
+    ocredit=N：当N>0时表示新密码中特殊字符出现的最多次数；当N<0时表示新密码中特殊字符出现最少次数；
+    maxrepeat=N：拒绝包含多于N个相同连续字符的密码。 默认值为0表示禁用此检查
+    maxsequence=N：拒绝包含长于N的单调字符序列的密码。默认值为0表示禁用此检查。实例是'12345'或'fedcb'。除非序列只是密码的一小部分，否则大多数此类密码都不会通过简单检查。
+    enforce_for_root: 如果用户更改密码是root，则模块将在失败检查时返回错误。默认情况下，此选项处于关闭状态，只打印有关失败检查的消息，但root仍可以更改密码。不要求root用户输入旧密码，因此不会执行比较旧密码和新密码的检查。
+    示例：
+        auth        required      pam_env.so            登陆后的环境变量
+        auth        sufficient    pam_fprintd.so        指纹认证
+        auth        sufficient    pam_unix.so    nullok try_first_pass    验证用户密码有效性
+        auth        requisite    pam_succeed_if.so
+        auth        required     pam_deny.so
+        auth        required     pam_tally2.so    deny=3 unlock_time=5 even_deny_root root_unlock_time=10    连续密码错误3次锁定账户，普通用户3秒后解锁，root用户10秒解锁
+        account     required     pam_unix.so
+        account     sufficient    pam_localuser.so
+        account     sufficient    pam_succeed_if.so     uid < 500 quiet    /对用户的登录条件做一些限制
+        account     required     pam_permit.so
+        password    requisite    pam_cracklib.so    try_first_pass retry=3 minlen=8 ucredit=-2 lcredit=-4 dcredit=-1 ocredit=-1    （登陆失败可以重试3次；密码最小长度8；最少包括2个大写字母；最少包含4个小写字母；最少包含一个数字；最好包含一个特殊字符）
+        password    sufficient    pam_unix.so    md5 shadow nullok try_first_pass use_authtok  remember=5    （用户最近5次使用过的旧密码不能重复使用）
+        password    required    pam_deny.so
+        session     optional    pam_keyinit.so
+        session     required    pam_limits.so
+        session     [success=1 default=ignore]    pam_succeed_if.so     service in crond quiet use_uid
+        session     required    pam_unix.so
+
+
+######################## 权限管理
+理解属主用户 属组用户 其他用户 与  文件 的 权限逻辑：
+    判断规则：
+        匹配及成立：即是按照该用户与文件的所属关系，分配到对应权限；eg:属组：如果用户属于该组，即使其他用户可写，因为组权限为只读，也不能更改
+    判断顺序：
+        从左到右依次是 owner, group, other
+    文件权限 与 目录权限：
+        1，目录权限
+            r：可以查询该目录下的文件名。
+            w：可以在该目录下删除、新建文件、更改文件名。
+            x：进入该目录（使该目录成为工作目录）
+            多级目录的权限取决于父目录权限
+        2，文件权限
+            r：显示该文件的内容（如：用cat命令）
+            w：可以编辑文件，修改文件的内容（如：用vim命令）
+            x：该文件是可执行文件 （如：./filename  来执行文件名）
+    umask: 系统环境变量值；设置新建文件的缺省权限
+        目录权限 = 777 - umask值
+        文件权限 = 666 - umask值
+        为什么文件是666：因为文件默认不需要 x 权限来执行
