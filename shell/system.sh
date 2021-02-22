@@ -723,7 +723,7 @@ vim redis.conf
     port 16079
     requirepass yourpasswd
 useradd normal_user
-chmod -R 700 /opt/redis
+chmod -R 705 /opt/redis
 chown -R normal_user:normal_user /opt/redis
 su normal_user
 $ src/redis-server redis.conf
@@ -856,8 +856,8 @@ chkconfig --list mysql
 touch /var/mysql/mysql.err
 chown -R mysql:mysql /var/mysql/
 chown -R mysql:mysql /usr/local/mysql
-chmod -R 700 /var/mysql/
-chmod -R 700 /usr/local/mysql
+chmod -R 705 /var/mysql/
+chmod -R 705 /usr/local/mysql
 su mysql
 service mysql start
 
