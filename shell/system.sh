@@ -719,7 +719,7 @@ $ make
 $ make install
 
 vim redis.conf
-    bind 114.86.189.141 10.105.0.0/16
+    bind 0.0.0.0
     port 16079
     requirepass yourpasswd
 useradd normal_user
