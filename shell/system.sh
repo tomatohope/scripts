@@ -621,6 +621,73 @@ done < app
 #
 tar -zcvf apache.tar.gz --exclude=logs/* /data/ceoServer/apache-tomcat-7.0.107/
 
+# 动态磁盘容缩(LVM) PV VG LV  
+背景： 为解决磁盘空间划分不合理问题，采用磁盘卷组动态容缩磁盘空间
+采用技术方案： LVM 逻辑卷管理PV 物理卷 ---> 物理磁盘整和 ---> VG 卷组 ---> 逻辑卷划分 ---> LV 逻辑卷
+
+技术相关名词：
+    scan create display remove extend export reduce
+
+前提条件: 空闲的硬盘 或 分区 fdisk [-l] [disk]；不需要格式化
+卷组管理：
+   ### pv
+   #pvcreate [disk_name]
+   pvcreate /dev/vdb
+   #pvs
+   #pvdisplay
+   #pvremove
+
+   ### vg
+   # vgcreate vg_name pv_name
+   vgcreate vg1 /dev/vdb1
+   # 卷组扩容
+   # vgextend vg_name pv_name
+   # vgdisplay vg1
+   # vgs
+   ### lv 逻辑卷
+   #lvcreate -n   lv_name  -L            16G    vg_name
+            新建           长度 逻辑卷大小        使用哪个卷组
+            新建的lv 路径 /dev/vg_name/lv_name
+   lvcreate -n lv0 -L 200G vg1
+
+   #lvextend
+      当卷组空间足够, 扩展到18G; vg 空间不足是先扩展 vg
+      # lvextend -L 18G  lv_dir
+      # resize2fs lv_dir 或者 xfs_groupfs lv_dir
+
+   #lvreduce 需要卸载后 缩量
+
+   #其他划分空间大小，PE 方式
+   vgchange -s 1M vg_name
+   vgcreate -s 1M vg_name
+   lvcreate -l PE_Total -n lv_name vg_name
+
+   #lvremove lv_dir
+磁盘使用：
+   格式化：
+      # mkfs.ext4  lv_dir
+      mkfs.ext4 /dev/vg1/lv0
+   磁盘挂载：
+      # mount /dev/vg1/lv0  /data/
+      mount lv_dir  mount_dir
+   开机自动挂载：
+      vi /etc/fstab
+      lv_dir     ext4    defaults        0 0
+
+# 根据业务实际操作记录
+  1、留出空的未格式化的磁盘，或未格式化的新分区
+  2、创建pv
+      pvcreate /dev/vdb
+  3、创建vg
+      vgcreate vg1 /dev/vdb
+  4、创建lv
+     lvcreate -n lv0 -L 999G vg1
+  5、格式化磁盘
+      mkfs.ext4 /dev/vg1/lv0
+  5、磁盘挂载
+    mkdir /data
+    mount /dev/vg1/lv0  /data/
+    echo "/dev/vg1/lv0                              /data                   ext4    defaults        0 0" >> /etc/fstab
 
 
 ######################### crontab 任务未执行 和 编写注意事项
