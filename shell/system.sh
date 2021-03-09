@@ -873,6 +873,7 @@ relay-log-info-file =  /var/mysql/relay-log.info
 server-id = 3306
 socket = /var/mysql/mysql.sock
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+max_allowed_packet=1024M
 character-set-server=utf8
 [mysqld_safe]
 ## start failure
