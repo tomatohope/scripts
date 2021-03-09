@@ -690,6 +690,12 @@ tar -zcvf apache.tar.gz --exclude=logs/* /data/ceoServer/apache-tomcat-7.0.107/
     echo "/dev/vg1/lv0                              /data                   ext4    defaults        0 0" >> /etc/fstab
 
 
+# create user for mysql5.6
+CREATE USER 'user2'@'10.105.%' IDENTIFIED BY 'BYF3cQ6O';
+grant all privileges on DevOps.* to 'user2'@'10.105.%' identified by 'BYF3cQ6O';
+flush privileges;
+
+
 ######################### crontab 任务未执行 和 编写注意事项
 
 1、crontab 服务未开启
@@ -850,9 +856,11 @@ cp /usr/local/mysql/support-files/my-default.cnf /etc/my.cnf
 vi /etc/my.cnf
 [client]
 port = 3307
+default-character-set=utf8
 socket = /var/mysql/mysql.sock
 [mysql]
 no-auto-rehash
+default-character-set=utf8
 [mysqld]
 user = mysql
 port = 3307
@@ -865,6 +873,7 @@ relay-log-info-file =  /var/mysql/relay-log.info
 server-id = 3306
 socket = /var/mysql/mysql.sock
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+character-set-server=utf8
 [mysqld_safe]
 ## start failure
 log-error =  /var/mysql/mysql.err
