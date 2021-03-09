@@ -944,6 +944,7 @@ mysql -uroot -p
 
 mysql> SET PASSWORD FOR 'root'@'localhost' = PASSWORD('new_pass');
 mysql> GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'password' WITH GRANT OPTION;
+mysql> alter database db_name CHARACTER SET utf8; \\ 待 /etc/my.cnf 的文件配置好重启后，这里让旧的数据支持相关字符集
 mysql> flush privileges;
 exit # su root
 usermod -s /sbin/nologin mysql
