@@ -853,6 +853,16 @@ make && make install
 
 mv /etc/my.cnf /etc/my.cnf_default
 cp /usr/local/mysql/support-files/my-default.cnf /etc/my.cnf
+
+# 如果下面 my.cnf 的配置文件更改了字符集，新建的库 会支持的，对于旧的数据需要执行下面的操作后重启数据库  
+      #show variables like '%char%'; 
+      #show table status from [database_name] like '%[table_name]%'\G;
+      #show full columns from [table_name];
+
+      #ALTER TABLE [table_name] CONVERT TO CHARACTER SET [charset_name];
+      alter database [db_name] CHARACTER SET utf8; 
+      flush privileges;
+      
 vi /etc/my.cnf
 [client]
 port = 3307
