@@ -8,3 +8,22 @@ r = redis.Redis(host='127.0.0.1', port=6379, password="xxxx", decode_responses=T
 used_memory = int(eval(str(r.info()))['used_memory']) / 1024 / 1024
 max_memory = int(eval(str(r.info()))['maxmemory']) / 1024 / 1024
 print(round((used_memory / max_memory) * 100))
+
+
+
+## 字符匹配
+
+# -*- coding: UTF-8 -*-
+import http.client
+conn = http.client.HTTPConnection("xxx", 13831)
+payload = ''
+headers = {
+  'Authorization': 'Basic cmVtb3RlX21vbml0b3JpbmdfdXNlcjpzTk9YKjRmNUA0Y0Zya25x',
+  'Cookie': 'JSESSIONID=TLFK8Z-UTQK7GMA3H9KIALDBOC33-SQI7ELMK-O3; OTTER_WEBX_JSESSIONID0=eNrz4A12DQ729PeL9%2FV3cfUxCKvOTLFSCvFx87aI0g0NCfQ2d%2Fd1NPaw9PZ09HFx8nc2NtYNDvQ0d%2FXx9db1N1bSSS6xMjQzNDMxMzM0sTA1NNNJTEYTyK2wMqiNAgDORRta'
+}
+conn.request("GET", "/channel_list.htm", payload, headers)
+res = conn.getresponse()
+data = res.read()
+line = str(data.decode("utf-8"))
+key = str("运行")
+print(len(line.split(key))-1)

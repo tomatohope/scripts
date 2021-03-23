@@ -69,4 +69,69 @@ permanent	返回301永久重定向
     动态资源： proxy_pass [path];
     静态资源： root|alias [path]; autoindex off; index index.html index.htm;
 
+nginx 反向代理 负载均衡 动静分离 高可用
+##################################
+正向代理：代理客户端 VPN 等
+反向代理：代理服务器 proxy_pass http://ip:port;
+配置文件：
+   全局:
+   event
+   http
+       location:
+           ~:  包含正则表达式 区分大小写
+           ~*：包含正则表达式 不区分大小写
+           =： 严格匹配
+负载均衡策略：
+   轮询
+   ip_hash( 在后端服务器不 down 下可以解决 session 问题)
+   weight
+   fair: 根据请求响应时间
+   next upstream:
+       osi 传输层：
+          proxy_connect_timeout
+          proxy_read_timeout
+          proxy_send_timeout
+       osi 表示层：
+          proxy_connect_timeout
+          proxy_ssl_verity on
+动静分离：
+  静态页面：
+     expire 过期时间 当走浏览器缓存时 返回 304
 
+     # uri: /xxx/  ; nginx_get_file_dir: /data/xxx/
+     location /xxx/ {
+         root /data/;
+         index index.html index.htm;
+         ## 列出文件
+         autoindex on;
+     }
+
+nginx高可用：
+  keepalived
+
+nginx 原理：
+   工作原理： master worker:
+                支持热部署 ： 在工作的worker 可以继续工作，其他worker更新配置，待未更新的worker工作结束后更新配置
+                高可用： 多个worker进程独立
+                worker 数量设置： cpu cores
+                worker_connections:
+                   单个请求占用的 worker 连接数：2 个 或 4 个、 分静态或动态请求
+                   nginx 最大并发数（最大请求数）：(num_worker * worker_connections) / 2 or 4
+       client -----> master -----> 多个 worker  -----
+         /|                                         |
+          |                                         |
+          |_________________________________________|
+
+
+
+################################nginx 生态
+nginx 原生 + 第三方C模块
+nginx plus
+TEngine(nginx + lua)
+OpenResty(nginx + lua)
+Kong(OpenResty + apiGateway)
+
+
+################################nginx 性能架构
+http 缓存机制
+进程间通信机制
