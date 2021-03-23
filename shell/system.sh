@@ -376,6 +376,8 @@ yum -y install shc
 ##  当 shell 开头是 bin/bash 时才可加密成功, 加密后就不需要 加 bash 执行
 #!/bin/bash
 shc -r -f t.sh
+#python 文件
+python -m filename  
 
 ## redis log
 redis-cli -h xxx -p 6379 -a pass monitor
@@ -621,6 +623,79 @@ done < app
 #
 tar -zcvf apache.tar.gz --exclude=logs/* /data/ceoServer/apache-tomcat-7.0.107/
 
+# 动态磁盘容缩(LVM) PV VG LV  
+背景： 为解决磁盘空间划分不合理问题，采用磁盘卷组动态容缩磁盘空间
+采用技术方案： LVM 逻辑卷管理PV 物理卷 ---> 物理磁盘整和 ---> VG 卷组 ---> 逻辑卷划分 ---> LV 逻辑卷
+
+技术相关名词：
+    scan create display remove extend export reduce
+
+前提条件: 空闲的硬盘 或 分区 fdisk [-l] [disk]；不需要格式化
+卷组管理：
+   ### pv
+   #pvcreate [disk_name]
+   pvcreate /dev/vdb
+   #pvs
+   #pvdisplay
+   #pvremove
+
+   ### vg
+   # vgcreate vg_name pv_name
+   vgcreate vg1 /dev/vdb1
+   # 卷组扩容
+   # vgextend vg_name pv_name
+   # vgdisplay vg1
+   # vgs
+   ### lv 逻辑卷
+   #lvcreate -n   lv_name  -L            16G    vg_name
+            新建           长度 逻辑卷大小        使用哪个卷组
+            新建的lv 路径 /dev/vg_name/lv_name
+   lvcreate -n lv0 -L 200G vg1
+
+   #lvextend
+      当卷组空间足够, 扩展到18G; vg 空间不足是先扩展 vg
+      # lvextend -L 18G  lv_dir
+      # resize2fs lv_dir 或者 xfs_groupfs lv_dir
+
+   #lvreduce 需要卸载后 缩量
+
+   #其他划分空间大小，PE 方式
+   vgchange -s 1M vg_name
+   vgcreate -s 1M vg_name
+   lvcreate -l PE_Total -n lv_name vg_name
+
+   #lvremove lv_dir
+磁盘使用：
+   格式化：
+      # mkfs.ext4  lv_dir
+      mkfs.ext4 /dev/vg1/lv0
+   磁盘挂载：
+      # mount /dev/vg1/lv0  /data/
+      mount lv_dir  mount_dir
+   开机自动挂载：
+      vi /etc/fstab
+      lv_dir     ext4    defaults        0 0
+
+# 根据业务实际操作记录
+  1、留出空的未格式化的磁盘，或未格式化的新分区
+  2、创建pv
+      pvcreate /dev/vdb
+  3、创建vg
+      vgcreate vg1 /dev/vdb
+  4、创建lv
+     lvcreate -n lv0 -L 999G vg1
+  5、格式化磁盘
+      mkfs.ext4 /dev/vg1/lv0
+  5、磁盘挂载
+    mkdir /data
+    mount /dev/vg1/lv0  /data/
+    echo "/dev/vg1/lv0                              /data                   ext4    defaults        0 0" >> /etc/fstab
+
+
+# create user for mysql5.6
+CREATE USER 'user2'@'10.105.%' IDENTIFIED BY 'BYF3cQ6O';
+grant all privileges on DevOps.* to 'user2'@'10.105.%' identified by 'BYF3cQ6O';
+flush privileges;
 
 
 ######################### crontab 任务未执行 和 编写注意事项
@@ -719,11 +794,11 @@ $ make
 $ make install
 
 vim redis.conf
-    bind 114.86.189.141 10.105.0.0/16
+    bind 0.0.0.0
     port 16079
     requirepass yourpasswd
 useradd normal_user
-chmod -R 700 /opt/redis
+chmod -R 705 /opt/redis
 chown -R normal_user:normal_user /opt/redis
 su normal_user
 $ src/redis-server redis.conf
@@ -780,12 +855,24 @@ make && make install
 
 mv /etc/my.cnf /etc/my.cnf_default
 cp /usr/local/mysql/support-files/my-default.cnf /etc/my.cnf
+
+# 如果下面 my.cnf 的配置文件更改了字符集，新建的库 会支持的，对于旧的数据需要执行下面的操作后重启数据库  
+      #show variables like '%char%'; 
+      #show table status from [database_name] like '%[table_name]%'\G;
+      #show full columns from [table_name];
+
+      #ALTER TABLE [table_name] CONVERT TO CHARACTER SET [charset_name];
+      alter database [db_name] CHARACTER SET utf8; 
+      flush privileges;
+      
 vi /etc/my.cnf
 [client]
 port = 3307
+default-character-set=utf8
 socket = /var/mysql/mysql.sock
 [mysql]
 no-auto-rehash
+default-character-set=utf8
 [mysqld]
 user = mysql
 port = 3307
@@ -798,6 +885,8 @@ relay-log-info-file =  /var/mysql/relay-log.info
 server-id = 3306
 socket = /var/mysql/mysql.sock
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+max_allowed_packet=1024M
+character-set-server=utf8
 [mysqld_safe]
 ## start failure
 log-error =  /var/mysql/mysql.err
@@ -856,8 +945,8 @@ chkconfig --list mysql
 touch /var/mysql/mysql.err
 chown -R mysql:mysql /var/mysql/
 chown -R mysql:mysql /usr/local/mysql
-chmod -R 700 /var/mysql/
-chmod -R 700 /usr/local/mysql
+chmod -R 705 /var/mysql/
+chmod -R 705 /usr/local/mysql
 su mysql
 service mysql start
 
@@ -867,6 +956,7 @@ mysql -uroot -p
 
 mysql> SET PASSWORD FOR 'root'@'localhost' = PASSWORD('new_pass');
 mysql> GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'password' WITH GRANT OPTION;
+mysql> alter database db_name CHARACTER SET utf8; \\ 待 /etc/my.cnf 的文件配置好重启后，这里让旧的数据支持相关字符集
 mysql> flush privileges;
 exit # su root
 usermod -s /sbin/nologin mysql

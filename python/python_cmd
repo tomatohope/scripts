@@ -10,7 +10,6 @@ max_memory = int(eval(str(r.info()))['maxmemory']) / 1024 / 1024
 print(round((used_memory / max_memory) * 100))
 
 
-
 ## 字符匹配
 
 # -*- coding: UTF-8 -*-

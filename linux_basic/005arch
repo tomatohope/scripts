@@ -98,6 +98,202 @@ nginx 反向代理 负载均衡 动静分离 高可用
   静态页面：
      expire 过期时间 当走浏览器缓存时 返回 304
 
+################################################################################################################################################################
+灰度发布 canary_release
+
+nginx canary release design
+
+nginx session 共享：
+    redis
+测试发布：weight 值
+   当发布不成功时：运行部分流量
+      一边流量版本回退
+   当发布成功时：
+      所有节点同步更新
+
+过滤方式：
+   根据规则：
+      特定用户：IP 源
+      cookie
+   weight: 影响部分客户
+
+数据问题：
+   问题：数据更新问题，新版更新逻辑不成功要做数据回滚的，而其他客户刚好在根据旧版代码逻辑读写数据
+   planB: 通过IP 设置灰度发布规则，限制数量用户访问，做好数据备份，测试验证数据有问题可手动修复
+#######################################
+
+static traffic nginx IP  Or nginx cookie
+https://www.cnblogs.com/weifeng1463/p/7353710.html
+################
+
+Nginx根据Cookie实现灰度发布
+############
+
+根据Cookie查询Cookie键为version的值，如果该Cookie值为V1则转发到hilinux_01，为V2则转发到hilinux_02。Cookie值都不匹配的情况下默认走hilinux_01所对应的服务器。
+
+两台服务器分别定义为:
+
+hilinux_01  192.168.1.100:8080
+hilinux_02  192.168.1.200:8080
+用if指令实现
+
+upstream hilinux_01 {
+    server 192.168.1.100:8080 max_fails=1 fail_timeout=60;
+}
+
+upstream hilinux_02 {
+    server 192.168.1.200:8080 max_fails=1 fail_timeout=60;
+}
+
+upstream default {
+    server 192.168.1.100:8080 max_fails=1 fail_timeout=60;
+}
+
+server {
+  listen 80;
+  server_name  www.hi-linux.com;
+  access_log  logs/www.hi-linux.com.log  main;
+
+  #match cookie
+  set $group "default";
+    if ($http_cookie ~* "version=V1"){
+        set $group hilinux_01;
+    }
+
+    if ($http_cookie ~* "version=V2"){
+        set $group hilinux_02;
+    }
+
+  location / {
+    proxy_pass http://$group;
+    proxy_set_header   Host             $host;
+    proxy_set_header   X-Real-IP        $remote_addr;
+    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+    index  index.html index.htm;
+  }
+ }
+用map指令实现
+
+在Nginx里面配置一个映射，$COOKIE_version可以解析出Cookie里面的version字段。$group是一个变量，{}里面是映射规则。
+
+如果一个version为V1的用户来访问，$group就等于hilinux_01。在server里面使用就会代理到http://hilinux_01上。version为V2的用户来访问，$group就等于hilinux_02。在server里面使用就会代理到http://hilinux_02上。Cookie值都不匹配的情况下默认走hilinux_01所对应的服务器。
+
+upstream hilinux_01 {
+    server 192.168.1.100:8080 max_fails=1 fail_timeout=60;
+}
+
+upstream hilinux_02 {
+    server 192.168.1.200:8080 max_fails=1 fail_timeout=60;
+}
+
+upstream default {
+    server 192.168.1.100:8080 max_fails=1 fail_timeout=60;
+}
+
+map $COOKIE_version $group {
+~*V1$ hilinux_01;
+~*V2$ hilinux_02;
+default default;
+}
+
+server {
+  listen 80;
+  server_name  www.hi-linux.com;
+  access_log  logs/www.hi-linux.com.log  main;
+
+  location / {
+    proxy_pass http://$group;
+    proxy_set_header   Host             $host;
+    proxy_set_header   X-Real-IP        $remote_addr;
+    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+    index  index.html index.htm;
+  }
+ }
+
+
+
+Nginx根据来路IP实现灰度发布
+############
+
+如果是内部IP，则反向代理到hilinux_02(预发布环境)；如果不是则反向代理到hilinux_01(生产环境)。
+
+upstream hilinux_01 {
+    server 192.168.1.100:8080 max_fails=1 fail_timeout=60;
+}
+
+upstream hilinux_02 {
+    server 192.168.1.200:8080 max_fails=1 fail_timeout=60;
+}
+
+upstream default {
+    server 192.168.1.100:8080 max_fails=1 fail_timeout=60;
+}
+
+server {
+  listen 80;
+  server_name  www.hi-linux.com;
+  access_log  logs/www.hi-linux.com.log  main;
+
+  set $group default;
+  if ($remote_addr ~ "211.118.119.11") {
+      set $group hilinux_02;
+  }
+
+location / {
+    proxy_pass http://$group;
+    proxy_set_header   Host             $host;
+    proxy_set_header   X-Real-IP        $remote_addr;
+    proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+    index  index.html index.htm;
+  }
+}
+如果你只有单台服务器，可以根据不同的IP设置不同的网站根目录来达到相同的目的。
+
+server {
+  listen 80;
+  server_name  www.hi-linux.com;
+  access_log  logs/www.hi-linux.com.log  main;
+
+  set $rootdir "/var/www/html";
+    if ($remote_addr ~ "211.118.119.11") {
+       set $rootdir "/var/www/test";
+    }
+
+    location / {
+      root $rootdir;
+    }
+}
+
+
+
+nginx 反向代理 负载均衡 动静分离 高可用
+##################################
+正向代理：代理客户端 VPN 等
+反向代理：代理服务器 proxy_pass http://ip:port;
+配置文件：
+   全局:
+   event
+   http
+       location:
+           ~:  包含正则表达式 区分大小写
+           ~*：包含正则表达式 不区分大小写
+           =： 严格匹配
+负载均衡策略：
+   轮询
+   ip_hash( 在后端服务器不 down 下可以解决 session 问题)
+   weight
+   fair: 根据请求响应时间
+   next upstream:
+       osi 传输层：
+          proxy_connect_timeout
+          proxy_read_timeout
+          proxy_send_timeout
+       osi 表示层：
+          proxy_connect_timeout
+          proxy_ssl_verity on
+动静分离：
+  静态页面：
+     expire 过期时间 当走浏览器缓存时 返回 304
      # uri: /xxx/  ; nginx_get_file_dir: /data/xxx/
      location /xxx/ {
          root /data/;

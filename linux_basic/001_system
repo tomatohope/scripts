@@ -434,6 +434,7 @@ cat /etc/pam.d/system-auth #登录过程检查: 认证 账户 密码 session
 
 业务安全：
   每天进行漏洞检查
+  未做 ssl cert： 证书有限
   业务 内网 安全组 策略； 外网端口 仅 80 443 port
   nginx:
     version
