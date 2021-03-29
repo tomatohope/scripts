@@ -425,6 +425,7 @@ cat /etc/pam.d/system-auth #登录过程检查: 认证 账户 密码 session
   pstree -p username
   pkill -P PID
   pgrep -l -u username
+  pgrep -f app  | wc -l
 
 
 
@@ -523,3 +524,10 @@ journalctl -p [log_level]
 TIME：
 #########################
 timedatectl
+
+
+shell python 等脚本执行时的环境问题
+#########################
+如果发现手动在某个系统用户下可以执行成功某个命令；但脚本执行的就是会失败；请考虑加载的ENV的问题
+建议"source  /etc/profile  &&  CMD" 来执行
+实际案例： jenkins 用户执行发布脚本时 mvn 打包失败

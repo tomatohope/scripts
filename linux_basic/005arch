@@ -278,7 +278,31 @@ nginx 反向代理 负载均衡 动静分离 高可用
            ~:  包含正则表达式 区分大小写
            ~*：包含正则表达式 不区分大小写
            =： 严格匹配
-负载均衡策略：
+
+            location  = / {
+              # 只匹配"/".
+              [ configuration A ]
+            }
+            location  / {
+              # 匹配任何请求，因为所有请求都是以"/"开始
+              # 但是更长字符匹配或者正则表达式匹配会优先匹配
+              [ configuration B ]
+            }
+            location ^~ /images/ {
+              # 匹配任何以 /images/ 开始的请求，并停止匹配 其它location
+              [ configuration C ]
+            }
+            location ~* .(gif|jpg|jpeg)$ {
+              # 匹配以 gif, jpg, or jpeg结尾的请求.
+              # 但是所有 /images/ 目录的请求将由 [Configuration C]处理.
+              [ configuration D ]
+            }
+
+反向代理参数：
+  https://www.php.cn/nginx/434074.html
+
+
+负载均衡策略（负载均衡是特殊的反向代理）：
    轮询
    ip_hash( 在后端服务器不 down 下可以解决 session 问题)
    weight
@@ -331,3 +355,52 @@ Kong(OpenResty + apiGateway)
 ################################nginx 性能架构
 http 缓存机制
 进程间通信机制
+
+
+
+################################nginx 性能调优
+worker_processes 进程的数量 CPU核的数量 另外不要忘了设置worker_cpu_affinity，这个配置用于将worker process与指定cpu核绑定，降低由于多CPU核切换造成的寄存器等现场重建带来的性能损耗。 grep processor /proc/cpuinfo | wc -l这个命令会告诉你当前机器是多少核，输出为2即表示2核。
+worker_connections 配置表示每个工作进程的并发连接数
+Buffers: 如果buffer太小，Nginx会不停的写一些临时文件，这样会导致磁盘不停的去读写
+  client_body_buffer_size:允许客户端请求的最大单个文件字节数
+  client_header_buffer_size:用于设置客户端请求的Header头缓冲区大小，大部分情况1KB大小足够
+  client_max_body_size:设置客户端能够上传的文件大小，默认为1m
+  large_client_header_buffers:该指令用于设置客户端请求的Header头缓冲区大小
+
+    具体可参考配置如下：
+      client_body_buffer_size 10K;
+      client_header_buffer_size 1k;
+      client_max_body_size 8m;
+      large_client_header_buffers 2 1k;
+
+Timeouts:
+  client_header_timeout client_body_timeout 设置请求头和请求体(各自)的超时时间，如果没有发送请求头和请求体，Nginx服务器会返回408错误或者request time out
+  keepalive_timeout给客户端分配keep-alive链接超时时间。服务器将在这个超时时间过后关闭链接，我们将它设置低些可以让Nginx持续工作的时间更长。
+  send_timeout 指定客户端的响应超时时间。这个设置不会用于整个转发器，而是在两次客户端读取操作之间。如果在这段时间内，客户端没有读取任何数据，Nginx就会关闭连接。
+
+  具体可参考配置如下：
+    client_body_timeout 12;
+    client_header_timeout 12;
+    keepalive_timeout 15;
+    send_timeout 10;
+
+Gzip Compression:
+  开启Gzip，gzip可以帮助Nginx减少大量的网络传输工作，另外要注意gzip_comp_level的设置，太高的话，Nginx服务会浪费CPU的执行周期。
+
+    具体可参考配置如下：
+      gzip             on;
+      gzip_comp_level  2;
+      gzip_min_length  1000;
+      gzip_proxied     expired no-cache no-store private auth;
+      gzip_types       text/plain application/x-javascript text/xml text/css application/xml;
+
+Static File Caching:
+    location ~* .(jpg|jpeg|png|gif|ico|css|js)$ {
+      expires 365d;
+ }
+
+logging:
+  access_log设置Nginx是否将存储访问日志。关闭这个选项可以让读取磁盘IO操作更快。 可以修改配置文件将该功能关闭：
+  access_log off;
+
+  sudo service nginx restart
