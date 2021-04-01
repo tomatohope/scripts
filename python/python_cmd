@@ -26,3 +26,221 @@ data = res.read()
 line = str(data.decode("utf-8"))
 key = str("运行")
 print(len(line.split(key))-1)
+
+
+## sms
+#! /usr/bin/python
+# coding=utf-8
+
+import requests
+import hashlib
+import json
+import time
+import sys
+import pymysql
+
+
+# get auth && update every 2 hours required by API_DOC
+def AuthSign(appkey, masterSecret, appId):
+    url = "https://openapi-smsp.getui.com/v1/sps/auth_sign"
+    headers = {
+        "Content-Type": "application/json; charset=UTF-8",
+        "Accept": "application/json;charset=utf-8"
+    }
+
+    appkey = appkey
+    masterSecret = masterSecret
+    appId = appId
+    timestamp = getCurrentTime()
+    sign = getSign(appkey, timestamp, masterSecret)
+    params = dict()
+    params["sign"] = sign
+    params["timestamp"] = timestamp
+    params["appId"] = appId
+    params = json.dumps(params)
+    r = requests.post(url, data=params, headers=headers)
+    response = eval(r.text)
+    return response['data']['authToken']
+    # print(r.text)
+
+
+def getSign(appKey, timeStamp, masterSecret):
+    rawValue = appKey + str(timeStamp) + masterSecret
+    return hashlib.sha256(rawValue.encode()).hexdigest()
+
+
+def getCurrentTime():
+    return int(time.time() * 1000)
+
+
+# send messages to group
+def SmsPushList(appId, authToken, smsTemplateId, Type, Host, Info, Stat, phone):
+    url = "https://openapi-smsp.getui.com/v1/sps/push_sms_list"
+    headers = {
+        "Content-Type": "application/json; charset=UTF-8",
+        "Accept": "application/json;charset=utf-8"
+    }
+    appId = appId
+    requestDataObject = dict()
+    requestDataObject["appId"] = appId
+    requestDataObject["authToken"] = authToken
+    requestDataObject["smsTemplateId"] = smsTemplateId
+
+    params = dict()
+    # placeholder
+    params["Type"] = Type
+    params["Host"] = Host
+    params["Info"] = Info
+    params["Stat"] = Stat
+    requestDataObject["smsParam"] = params
+    # md5 32 phone num: https://md5jiami.51240.com/
+    requestDataObject["recNum"] = phone
+
+    params = json.dumps(requestDataObject)
+    r = requests.post(url, data=params, headers=headers)
+    print(r.text)
+
+
+# sms records after requested
+def sms_records(host, port, user, passwd, db, sql):
+    db = pymysql.connect(host=host,
+                         port=port,
+                         user=user,
+                         passwd=passwd,
+                         db=db,
+                         charset='utf8')
+    cursor = db.cursor()
+    cursor.execute(sql)
+    db.commit()
+    db.close()
+
+
+def records_fields(user_list):
+    users = ""
+    for user in range(len(user_list)):
+        users = users + user_list[user] + " "
+    return "INSERT INTO sms.sms_request_record (user_list, user_total) \
+    VALUES ('" + users + "', " + str(len(user_list)) + ");"
+
+
+mysql_host = "xxx"
+mysql_port = 3306
+mysql_user = "xxx"
+mysql_pass = "xxx"
+mysql_db = "xxx"
+appId = "xxx"
+appkey = "xxx"
+masterSecret = "xxx"
+smsTemplateId = "xxx"
+
+Type = "Zabbix"
+Host = sys.argv[1]
+Info = sys.argv[2]
+Stat = sys.argv[3]
+item_name = sys.argv[4]
+# default Ops phone list
+phone = ["xx", "xxx"]
+employment_id = ["xx", "xxx"]
+
+# No system item list
+item_list = ["ceo-", "sfa-", "wzwp-", "tomcat", "Cancel order", "Order", "rabbitmq"]
+for key in range(len(item_list)):
+    if item_list[key] in item_name:
+        phone.append("others_phone_list")
+        employment_id.append("others employment_id")
+if "otter" == item_name:
+    phone.append("Sfa_phone_list")
+    employment_id.append("sfa employment_id")
+elif "data-" in item_name:
+    phone.append("data_phone_list")
+    employment_id.append("data employment_id")
+
+authToken = AuthSign(appkey, masterSecret, appId)
+SmsPushList(appId, authToken, smsTemplateId, Type, Host, Info, Stat, phone)
+sms_records(mysql_host, mysql_port, mysql_user, mysql_pass, mysql_db, records_fields(employment_id))
+phone.clear()
+employment_id.clear()
+
+
+
+### mysql --- > file ---> es filebeat
+
+# -*- coding: UTF-8 -*-
+import pymysql
+import time
+
+
+"""
+   function:
+       1.save jumpServer terminal commands from database of jumpServer as log_file
+       2.get the log by filebeat to elasticsearch
+   deploy:
+       1.host: jumpServer host
+         file: /opt/script/get_jumpServer_commands.py
+       2.run commands:
+         su - filebeat
+         mkdir -p /usr/local/filebeat/logs
+         nohup python3 -u /opt/script/get_jumpServer_commands.pyc > /usr/local/filebeat/logs/get_jumpServer_scripts-$(date '+%Y-%m-%d').log 2>&1 &
+       3.get the log by filebeat
+         host: jumpServer host
+         file: /usr/local/filebeat
+         conf: http://code.hotkidceo.com/ops/information: ../doc/company_arch/filebeat_conf_dir/jumpServer.yml
+"""
+
+
+def jumpServer_log(mysql_host, mysql_db, mysql_user, mysql_pass, mysql_port, last_timestamp, timestamp):
+    db = pymysql.connect(host=mysql_host,
+                         port=mysql_port,
+                         user=mysql_user,
+                         passwd=mysql_pass,
+                         db=mysql_db,
+                         charset='utf8')
+    cursor = db.cursor()
+    sql = "select * from terminal_command where timestamp >= " + str(last_timestamp) + " AND timestamp < " + str(timestamp)
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    db.close()
+    return result
+
+
+mysql_host = "xxx"
+mysql_db = "xxx"
+mysql_user = "xxx"
+mysql_pass = "xxx"
+mysql_port = 3319
+
+# start when before 300s
+now = time.time() - 300
+while True:
+    print("####")
+    interval = 60
+    last_timestamp = int(now - interval)
+    date = time.strftime("%Y.%m.%d", time.localtime(int(time.time())))
+    log_file = "/usr/local/filebeat/logs/jumpServer_terminal_commands-" + date + ".log"
+
+    print("last_timestamp: ", last_timestamp)
+    print("now: ", now)
+    result = list(jumpServer_log(mysql_host, mysql_db, mysql_user, mysql_pass, mysql_port, last_timestamp, int(now)))
+    print("result: ", result)
+    for line in range(len(result)):
+        line_list = list(result[line])
+        print("line_list: ", line_list)
+        dic = {'id':          str(line_list[0]),
+               'user':        str(line_list[1]),
+               'asset':       str(line_list[2]),
+               'system_user': str(line_list[3]),
+               'input':       str(line_list[4]),
+               'output':      str(line_list[5]),
+               'session':     str(line_list[6]),
+               'timestamp':   str(line_list[7]),
+               'org_id':      str(line_list[8]),
+               'risk_level':  str(line_list[9]),
+               }
+        print("dic", str(dic))
+        with open(log_file, "a+") as f:
+            ## save dic as json file
+            f.write(json.dumps(dic) + "\n")
+        dic.clear()
+    now = now + interval
+    time.sleep(interval)
+
