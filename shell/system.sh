@@ -1494,3 +1494,10 @@ http{
                     }
                 }
 		
+
+######################## 开机自启
+vi /etc/rc.local
+
+   su - test1 -c "touch /tmp/test1 && tail -f /tmp/test1"
+
+chmod +x /etc/rc.d/rc.local

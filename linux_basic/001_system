@@ -531,3 +531,14 @@ shell python 等脚本执行时的环境问题
 如果发现手动在某个系统用户下可以执行成功某个命令；但脚本执行的就是会失败；请考虑加载的ENV的问题
 建议"source  /etc/profile  &&  CMD" 来执行
 实际案例： jenkins 用户执行发布脚本时 mvn 打包失败
+
+
+######################### 用户异常登录
+zabbix 报警提示： 账户异常
+usermod -s /sbin/nologin user_name
+pstree -l -u nscd ##查看用户是否启用进程
+cat /etc/shadow  #查看用户创建时间 查看 第三个字段的值，如果与前几行不一致请查看是否是异常账户
+date -d "1970-01-01 18715 days" "+%Y/%m/%d %H:%M:%S"
+cat /var/log/secure | grep username  #也可以查看该用户是否异常登录
+
+userdel -r nscd  #清除用户
