@@ -2,3 +2,28 @@
 iftop -P -i [network_name]
 # Ntop
 #nmap \\ network discovery
+
+## 双网卡  static IP
+[root@node2 ~]# cat /etc/sysconfig/network-scripts/ifcfg-enp0s8
+TYPE=Ethernet
+PROXY_METHOD=none
+BROWSER_ONLY=no
+BOOTPROTO=static
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_FAILURE_FATAL=no
+IPV6_ADDR_GEN_MODE=stable-privacy
+NAME=enp0s8
+UUID=b6f66950-048d-4da8-8bde-66fe1b462723
+DEVICE=enp0s8
+ONBOOT=yes
+IPADDR=192.168.56.2
+NETMASK=255.255.255.0
+GATEWAY=192.168.56.1
+[root@node2 ~]#
+
+
+service  network restart

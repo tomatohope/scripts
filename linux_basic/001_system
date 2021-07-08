@@ -542,3 +542,34 @@ date -d "1970-01-01 18715 days" "+%Y/%m/%d %H:%M:%S"
 cat /var/log/secure | grep username  #也可以查看该用户是否异常登录
 
 userdel -r nscd  #清除用户
+
+
+
+################ yum err
+error: db5 error(-30973) from dbenv->failchk
+
+ cd /var/lib/rpm
+ 1216  2021-05-24 15:32:29 rm -rf _db.*
+ 1217  2021-05-24 15:32:33 rpm --rebuilddb
+
+
+iostat -d vdb -x -k 1
+
+
+################ 查看端口相关PID
+    ps -ef | grep serverName
+    netstat -ntlp | grep PID
+
+    lsof -i:port
+    netstat -ntlp | grep port
+
+################ 系统负载 IO
+   top :wait
+    #io 使用率
+    iotop -oPa -d 5
+    #io 命令
+    pidstat -d 1
+    #io 程序
+    iotop -oP
+    #io 使用率
+    iostat -d -x 1
