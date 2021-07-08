@@ -227,6 +227,7 @@ cat a | sed -e '/auto/,$d'
 在指定行后添加多行文本：
       将多行文本存到指定文件
       sed -e '/指定行字符/r 指定的多行文本文件' 需要修改的文件
+      sed -i "" "/log_dir:/r t" prd_ceo_12.yml
 
 #替换时附加引号
 sed -e "s/${aa}/\"${aa1}\"/g" aa
