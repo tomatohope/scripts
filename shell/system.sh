@@ -635,14 +635,17 @@ tar -zcvf apache.tar.gz --exclude=logs/* /data/ceoServer/apache-tomcat-7.0.107/
 卷组管理：
    ### pv
    #pvcreate [disk_name]
+   #fdisk 磁盘划分出一个分区，#这里方便下次扩容 建立 pv
+   #pvcreate /dev/vdb1
    pvcreate /dev/vdb
+   #如果磁盘扩容时还是对原有磁盘扩容，刚好原来建立pv时没有分区，可直接 pvresize PV_name，之后直接扩容lv,应为pvresize后 pv 和 vg也扩容了
    #pvs
    #pvdisplay
    #pvremove
 
    ### vg
    # vgcreate vg_name pv_name
-   vgcreate vg1 /dev/vdb1
+   vgcreate vg1 /dev/vdb
    # 卷组扩容
    # vgextend vg_name pv_name
    # vgdisplay vg1
@@ -675,7 +678,7 @@ tar -zcvf apache.tar.gz --exclude=logs/* /data/ceoServer/apache-tomcat-7.0.107/
       mount lv_dir  mount_dir
    开机自动挂载：
       vi /etc/fstab
-      lv_dir     ext4    defaults        0 0
+      lv_dir  mount_dir ext4    defaults        0 0
 
 # 根据业务实际操作记录
   1、留出空的未格式化的磁盘，或未格式化的新分区
